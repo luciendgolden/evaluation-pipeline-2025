@@ -1,0 +1,5 @@
+{
+    "hidden_size": 384,
+    "classifier_layer_norm_eps": 1e-5,
+    "take_final": false
+}
