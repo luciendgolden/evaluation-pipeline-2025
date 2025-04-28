@@ -176,3 +176,7 @@ data/
 
 # Results
 *_results/
+*results/
+
+# Additional files
+.DS_Store
