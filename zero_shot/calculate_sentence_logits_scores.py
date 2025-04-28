@@ -1,8 +1,15 @@
+from __future__ import annotations
+
 import torch
 import torch.nn.functional as F
 
+from typing import TYPE_CHECKING
 
-def create_attention_mask(input_ids, padding, style="bidirectional", device="cpu"):
+if TYPE_CHECKING:
+    from transformers.tokenization_utils_base import PreTrainedTokenizerBase
+
+
+def _create_attention_mask(input_ids: torch.Tensor, padding: int, style: str = "bidirectional", device: torch.device = torch.device("cpu")) -> torch.Tensor:
     attention_mask = None
 
     if style == "bidirectional":
@@ -13,7 +20,23 @@ def create_attention_mask(input_ids, padding, style="bidirectional", device="cpu
 
 
 @torch.no_grad()
-def calculate_logits(sentences, model, tokenizer, device, batch_size, style):
+def calculate_logits(sentences: list[str], model: torch.nn.Module, tokenizer: PreTrainedTokenizerBase, device: torch.device, batch_size: int, style: str) -> tuple[torch.Tensor, list[list[int]]]:
+    """This function takes a pairs of sentences, a model, and a tokenizer and outputs the
+    tokenized sentences as well as their logits given by the model for a specified
+    architectural style.
+
+    Args:
+        sentences(list[str]): A list of sentences.
+        model(torch.nn.Module): The model to evaluate.
+        tokenizer(PreTrainedTokenizerBase): The tokenizer associated with the model.
+        device(torch.device): The device the model is on.
+        batch_size(int): The number of masked tokens to process together.
+        style(str): The architecture style of the model (causal, mntp, mlm).
+
+    Returns:
+        torch.Tensor: The logits of each sentence.
+        list[list[int]]: The tokenized sentences.
+    """
     mask_index = tokenizer.mask_token_id
     pad_index = tokenizer.pad_token_id
     cls_index = torch.tensor([tokenizer.cls_token_id])
@@ -21,38 +44,38 @@ def calculate_logits(sentences, model, tokenizer, device, batch_size, style):
 
     sentences = [torch.tensor(tokenizer(s, add_special_tokens=False).input_ids) for s in sentences]
 
-    def prepare_mlm(tokens, padding: int, device: str | torch.device = "cpu"):
+    def _prepare_mlm(tokens, padding: int, device: str | torch.device = "cpu"):
         tokens = torch.cat([cls_index, tokens, sep_index, torch.full((padding,), fill_value=pad_index)]).to(device)
         tokens = tokens.repeat(tokens.size(0) - 2 - padding, 1)
         mask = torch.eye(tokens.size(1), device=device).bool()[1:-(1 + padding), :]
         input_ids = tokens.masked_fill(mask, value=mask_index)
-        attention_mask = create_attention_mask(input_ids, padding, device=device)
+        attention_mask = _create_attention_mask(input_ids, padding, device=device)
         return input_ids, attention_mask
 
-    def prepare_mntp(tokens, padding: int, device: str | torch.device = "cpu"):
+    def _prepare_mntp(tokens, padding: int, device: str | torch.device = "cpu"):
         tokens = torch.cat([cls_index, tokens, torch.full((padding,), fill_value=pad_index)]).to(device)
         tokens = tokens.repeat(tokens.size(0) - 1 - padding, 1)
         mask = torch.eye(tokens.size(1), device=device).bool()[1:(-padding if padding > 0 else None), :]
         input_ids = tokens.masked_fill(mask, value=mask_index)
-        attention_mask = create_attention_mask(input_ids, padding, device=device)
+        attention_mask = _create_attention_mask(input_ids, padding, device=device)
         return input_ids, attention_mask
 
-    def prepare_causal(tokens, padding: int, device: str | torch.device = "cpu"):
+    def _prepare_causal(tokens, padding: int, device: str | torch.device = "cpu"):
         input_ids = torch.cat([cls_index, tokens, torch.full((padding,), fill_value=pad_index)]).to(device)
         return input_ids
 
     max_length = max(s.size(0) for s in sentences)
     if style == "mlm":
-        input_ids, attention_masks = zip(*[prepare_mlm(s, max_length - s.size(0), device) for s in sentences])
+        input_ids, attention_masks = zip(*[_prepare_mlm(s, max_length - s.size(0), device) for s in sentences])
         input_ids = torch.cat(input_ids, dim=0)
         attention_mask = torch.cat(attention_masks, dim=0)
         indices = [torch.arange(1, 1 + len(s), device=device) for s in sentences]
     elif style == "causal":
-        input_ids = [prepare_causal(s, max_length - s.size(0), device) for s in sentences]
+        input_ids = [_prepare_causal(s, max_length - s.size(0), device) for s in sentences]
         input_ids = torch.stack(input_ids, dim=0)
         indices = [torch.arange(0, len(s), device=device) for s in sentences]
     elif style == "mntp":
-        input_ids, attention_masks = zip(*[prepare_mntp(s, max_length - s.size(0), device) for s in sentences])
+        input_ids, attention_masks = zip(*[_prepare_mntp(s, max_length - s.size(0), device) for s in sentences])
         input_ids = torch.cat(input_ids, dim=0)
         attention_mask = torch.cat(attention_masks, dim=0)
         indices = [torch.arange(0, len(s), device=device) for s in sentences]
@@ -85,8 +108,21 @@ def calculate_logits(sentences, model, tokenizer, device, batch_size, style):
     return logits, sentences
 
 
-def calculate_scores_with_temperature(logits, sentences, device, temperatures=None):
+def calculate_scores_with_temperature(logits: torch.Tensor, sentences: list[list[int]], device: torch.device, temperatures: torch.Tensor | None = None) -> torch.Tensor:
+    """This function takes the logits of a pair sentences, the tokenized sentences,
+    and the list of temperatures to evaluate the performance of the model.
 
+    Args:
+        logits(torch.Tensor): The logits of sentences.
+        sentences(list[list[int]]): Tokenized sentences.
+        device(torch.device): The device the model is on.
+        temperatures(torch.Tensor | None): A tensor of temperatures to test the
+            model at. (If None, the model will be evaluated at temperature 1)
+
+    Returns:
+        torch.Tensor: A tensor containing the sum logits of the model at each
+            temperature.
+    """
     if temperatures is None:
         temperatures = torch.ones(1, device=device)
 
