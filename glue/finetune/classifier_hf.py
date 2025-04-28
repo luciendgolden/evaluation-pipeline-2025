@@ -3,7 +3,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 from typing import TYPE_CHECKING
-from transformers import AutoModel
+from transformers import AutoModel, AutoConfig
 from transformers.modeling_outputs import BaseModelOutput
 
 if TYPE_CHECKING:
@@ -12,15 +12,16 @@ if TYPE_CHECKING:
 
 class ClassifierHead(nn.Module):
 
-    def __init__(self, config: argparse.Namespace) -> None:
+    def __init__(self, config: argparse.Namespace, hidden_size=None) -> None:
         super().__init__()
+        hidden_size = hidden_size if hidden_size is not None else config.hidden_size
         self.nonlinearity: nn.Sequential = nn.Sequential(
-            nn.LayerNorm(config.hidden_size, config.classifier_layer_norm_eps, elementwise_affine=False),
-            nn.Linear(config.hidden_size, config.hidden_size),
+            nn.LayerNorm(hidden_size, config.classifier_layer_norm_eps, elementwise_affine=False),
+            nn.Linear(hidden_size, hidden_size),
             nn.GELU(),
-            nn.LayerNorm(config.hidden_size, config.classifier_layer_norm_eps, elementwise_affine=False),
+            nn.LayerNorm(hidden_size, config.classifier_layer_norm_eps, elementwise_affine=False),
             nn.Dropout(config.classifier_dropout),
-            nn.Linear(config.hidden_size, config.num_labels)
+            nn.Linear(hidden_size, config.num_labels)
         )
 
     def forward(self, embeddings: torch.Tensor) -> torch.Tensor:
@@ -32,7 +33,9 @@ class ModelForSequenceClassification(nn.Module):
     def __init__(self, config: argparse.Namespace) -> None:
         super().__init__()
         self.transformer: nn.Module = AutoModel.from_pretrained(config.model_name_or_path, trust_remote_code=True)
-        self.classifier: nn.Module = ClassifierHead(config)
+        model_config = AutoConfig.from_pretrained(config.model_name_or_path, trust_remote_code=True)
+        hidden_size = model_config.hidden_size
+        self.classifier: nn.Module = ClassifierHead(config, hidden_size)
         self.take_final = config.take_final
 
     def forward(self, input_data: torch.Tensor, attention_mask: torch.Tensor | None = None) -> torch.Tensor:
