@@ -64,7 +64,7 @@ def evaluate_sentence(model: torch.nn.Module, tokenizer: PreTrainedTokenizerBase
     final_predictions = []
 
     for key in pairs[0].keys():
-        if key in ["good", "bad"]:
+        if key in ["sentences", "label"]:
             continue
 
         counts[key] = {"correct": [Counter() for _ in range(temperatures.size(0))], "total": [Counter() for _ in range(temperatures.size(0))]}
@@ -76,16 +76,16 @@ def evaluate_sentence(model: torch.nn.Module, tokenizer: PreTrainedTokenizerBase
     progress_bar = tqdm(total=len(pairs))
 
     for pair in pairs:
-        finegrained_ranking = rank([pair["good"], pair["bad"]], model, tokenizer, device, args.batch_size, args.backend, temperatures=temperatures)
+        finegrained_ranking = rank(pair["sentences"], model, tokenizer, device, args.batch_size, args.backend, temperatures=temperatures)
 
         for i, ranking in enumerate(finegrained_ranking):
             for subdomain, count in counts.items():
-                if ranking[0] == 0:
+                if ranking[0] == pair["label"]:
                     count["correct"][i][pair[subdomain]] += 1
                 count["total"][i][pair[subdomain]] += 1
                 if args.predict:
                     uid = pair["UID"]
-                    all_predictions[i][uid].append({"id": f"{uid}_{uid_counter[i][uid]}", "pred": " " + (pair["good"] if ranking[0] == 0 else pair["bad"])})
+                    all_predictions[i][uid].append({"id": f"{uid}_{uid_counter[i][uid]}", "pred": " " + (pair["sentences"][ranking[0]])})
 
             if args.predict:
                 uid_counter[i][uid] += 1

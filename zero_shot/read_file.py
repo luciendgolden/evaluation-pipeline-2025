@@ -40,8 +40,8 @@ def decode_blimp(raw_dict: dict[str, Any], file_name: pathlib.Path) -> dict[str,
     """
     if "field" in raw_dict:
         pair = {
-            "good": raw_dict["sentence_good"],
-            "bad": raw_dict["sentence_bad"],
+            "sentences": [raw_dict["sentence_good"], raw_dict["sentence_bad"]],
+            "label": 0,
             "field": raw_dict["field"],
             "UID": raw_dict["UID"],
             "linguistics_term": raw_dict["linguistics_term"],
@@ -50,8 +50,8 @@ def decode_blimp(raw_dict: dict[str, Any], file_name: pathlib.Path) -> dict[str,
             pair["field"] = "syntax/semantics"
     else:  # For the supplemetal tasks, there is no field or UID
         pair = {
-            "good": raw_dict["sentence_good"],
-            "bad": raw_dict["sentence_bad"],
+            "sentences": [raw_dict["sentence_good"], raw_dict["sentence_bad"]],
+            "label": 0,
             "field": "supplemental",
             "UID": file_name.stem,
             "linguistics_term": "supplemental",
@@ -72,8 +72,8 @@ def decode_ewok(raw_dict: dict[str, Any]) -> dict[str, str]:
         dict[str, str]: A dictionary with values used for evaluation
     """
     pair = {
-        "good": " ".join([raw_dict["Context1"], raw_dict["Target1"]]),
-        "bad": " ".join([raw_dict["Context1"], raw_dict["Target2"]]),
+        "sentences": [" ".join([raw_dict["Context1"], raw_dict["Target1"]]), " ".join([raw_dict["Context1"], raw_dict["Target2"]])],
+        "label": 0,
         "UID": raw_dict["Domain"],
         "context_type": raw_dict["ContextType"],
         "context_contrast": raw_dict["ContextDiff"],
