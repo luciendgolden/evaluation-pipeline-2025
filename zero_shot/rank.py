@@ -1,5 +1,5 @@
 import torch
-from calculate_logits_scores import calculate_logits, calculate_scores_with_temperature
+from calculate_sentence_logits_scores import calculate_logits, calculate_scores_with_temperature
 
 
 @torch.no_grad()
