@@ -6,3 +6,4 @@
 (D) Create a template of a HF folder / tutorial to make one +HF-transform #tutorial
 (D) Create a example on how to implement special tokenizer encoding +HF-transform #tutorial
 (B) Double check all the PyTorch implementation +PyTorch-checks #run-check
+(E) Make the if else into factories +Factorization #refactor

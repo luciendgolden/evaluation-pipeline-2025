@@ -178,5 +178,8 @@ data/
 *_results/
 *results/
 
+# Models
+*models/
+
 # Additional files
 .DS_Store
