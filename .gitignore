@@ -183,3 +183,6 @@ data/
 
 # Additional files
 .DS_Store
+
+# Old Code
+old_code/
