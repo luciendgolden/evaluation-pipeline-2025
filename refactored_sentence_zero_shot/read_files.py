@@ -5,6 +5,7 @@ import json
 import pathlib
 from typing import Any
 
+
 def read_files(data_path: pathlib.Path, task: str) -> list[dict[str, str]]:
     """Takes the path to a data directory and a task, reads the JSONL datafiles
     in the directory and returns a list of dictionaries containing all the
@@ -30,6 +31,7 @@ def read_files(data_path: pathlib.Path, task: str) -> list[dict[str, str]]:
 
     return data
 
+
 def decode(line: str, file_name: pathlib.Path, task: str) -> dict[str, str]:
     """This function takes a line of a JSONL file and returns a dictionary of terms to be used by the evaluation.
 
@@ -48,8 +50,6 @@ def decode(line: str, file_name: pathlib.Path, task: str) -> dict[str, str]:
         data_dict = decode_blimp(raw_dict, file_name)
     elif task == "ewok":
         data_dict = decode_ewok(raw_dict)
-    elif task == "comps":
-        data_dict = decode_comps(raw_dict, file_name)
     elif task == "entity_tracking":
         data_dict = decode_entity_tracking(raw_dict, file_name)
     else:
@@ -74,8 +74,8 @@ def decode_blimp(raw_dict: dict[str, Any], file_name: pathlib.Path) -> dict[str,
             "completions": [raw_dict["sentence_good"], raw_dict["sentence_bad"]],
             "label": 0,
             "field": raw_dict["field"],
-            "_UID": raw_dict["UID"],
             "UID": raw_dict["UID"],
+            "_UID": raw_dict["UID"],
             "linguistics_term": raw_dict["linguistics_term"],
         }
         if pair["field"] == "syntax_semantics":  # Standardizing the style of this field
@@ -86,12 +86,13 @@ def decode_blimp(raw_dict: dict[str, Any], file_name: pathlib.Path) -> dict[str,
             "completions": [raw_dict["sentence_good"], raw_dict["sentence_bad"]],
             "label": 0,
             "field": "supplemental",
-            "_UID": file_name.stem,
             "UID": file_name.stem,
+            "_UID": file_name.stem,
             "linguistics_term": "supplemental",
         }
 
     return pair
+
 
 def decode_ewok(raw_dict: dict[str, Any]) -> dict[str, str]:
     """This function takes a dictionary of a single datapoint of a EWoK datafile
@@ -108,8 +109,8 @@ def decode_ewok(raw_dict: dict[str, Any]) -> dict[str, str]:
         "sentences": [" ".join([raw_dict["Context1"], raw_dict["Target1"]]), " ".join([raw_dict["Context1"], raw_dict["Target2"]])],
         "completions": [raw_dict["Target1"], raw_dict["Target2"]],
         "label": 0,
-        "_UID": raw_dict["Domain"],
         "UID": raw_dict["Domain"],
+        "_UID": raw_dict["Domain"],
         "context_type": raw_dict["ContextType"],
         "context_contrast": raw_dict["ContextDiff"],
         "target_contrast": raw_dict["TargetDiff"],
@@ -117,39 +118,6 @@ def decode_ewok(raw_dict: dict[str, Any]) -> dict[str, str]:
 
     return pair
 
-def decode_comps(raw_dict: dict[str, Any], file_name: pathlib.Path) -> dict[str, str]:
-    """This function takes a dictionary of a single datapoint of a COMPS datafile
-    and returns a dictionary of terms to be used by the evaluation.
-
-    Args:
-        raw_dict(dict[str, Any]): A dictionary from a single datapoint of a
-            COMPS datafile.
-
-    Returns:
-        dict[str, str]: A dictionary with values used for evaluation
-    """
-    acceptable_sentence = " ".join([raw_dict["prefix_acceptable"], raw_dict["property_phrase"]])
-    unacceptable_sentence = " ".join([raw_dict["prefix_unacceptable"], raw_dict["property_phrase"]])
-    
-    if file_name.stem == "comps_base":
-        subset = "base"
-    elif file_name.stem == "comps_wugs":
-        subset = "wugs"
-    elif file_name.stem == "comps_wugs_dist-before":
-        subset = "wugs_dist_before"
-    else:
-        subset = "wugs_dist_in_between"
-    idx = raw_dict["id"]
-
-    pair = {
-        "sentences" : [acceptable_sentence, unacceptable_sentence],
-        "completions" : [raw_dict["property_phrase"], raw_dict["property_phrase"]],
-        "label" : 0,
-        "split" : subset,
-        "UID" : f"{subset}_{idx}"
-    }
-
-    return pair
 
 def decode_entity_tracking(raw_dict: dict[str, Any], file_name: pathlib.Path) -> dict[str, str]:
     """This function takes a dictionary of a single datapoint of a Entity Tracking datafile
@@ -169,7 +137,7 @@ def decode_entity_tracking(raw_dict: dict[str, Any], file_name: pathlib.Path) ->
         "completions" : [option for option in raw_dict["options"]],
         "label" : 0,
         "subset" : subset,
-        "UID" : uid
+        "_UID" : uid
     }
 
     return pair

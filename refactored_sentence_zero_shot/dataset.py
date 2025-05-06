@@ -1,8 +1,6 @@
 # File: data_utils.py
 # -------------------
 
-import os
-import json
 from transformers import AutoTokenizer
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -12,17 +10,18 @@ from typing import Any
 
 from read_files import read_files
 
+
 class CompletionRankingDataset(Dataset):
 
     def __init__(self, args: argparse.ArgumentParser):
         self.backend = args.backend
         self.tokenizer = AutoTokenizer.from_pretrained(args.model_path_or_name, padding_side="right")
-        
+
         if self.tokenizer.pad_token_id is None:
             if self.backend == "causal":
                 self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
             else:
-                self.tokenizer.pad_token_id = self.tokenizer.cls_token_id                
+                self.tokenizer.pad_token_id = self.tokenizer.cls_token_id
 
         # Load and process the data
         self.data = read_files(args.data_path, args.task)
@@ -48,7 +47,7 @@ class CompletionRankingDataset(Dataset):
             tokens = tokenizer_output["input_ids"]
             attention_mask = tokenizer_output["attention_mask"]
 
-            # Phrase mask (to determine the exact tokens associated with the completion/suffix)            
+            # Phrase mask (to determine the exact tokens associated with the completion/suffix)
             start_char_idx = len(sentence) - len(completion)
             phrase_indices = []
             for i, (start, end) in enumerate(tokenizer_output['offset_mapping']):
@@ -76,9 +75,9 @@ class CompletionRankingDataset(Dataset):
         sentences = sentence_dict["sentences"]
         completions = sentence_dict["completions"]
         mask_index = self.tokenizer.mask_token_id
-        cls_index = [self.tokenizer.cls_token_id] 
+        cls_index = [self.tokenizer.cls_token_id]
         sep_index = [self.tokenizer.sep_token_id]
-        
+
         processed_sentence_dict = {}
         for sentence_idx, (sentence, completion) in enumerate(zip(sentences, completions)):
             # Basic outputs
@@ -104,7 +103,7 @@ class CompletionRankingDataset(Dataset):
                 curr_tokens = torch.LongTensor(cls_index + tokens + sep_index)
                 curr_tokens[mask_replacement_index] = mask_index
                 processed_tokens.append(curr_tokens)
-                
+
                 curr_attention_mask = torch.LongTensor([1] + attention_mask + [1])
                 processed_attention_masks.append(curr_attention_mask)
 
@@ -151,7 +150,7 @@ class CompletionRankingDataset(Dataset):
                 curr_tokens = torch.LongTensor(cls_index + tokens)
                 curr_tokens[phrase_index + 1] = mask_index
                 processed_tokens.append(curr_tokens)
-                
+
                 curr_attention_mask = torch.LongTensor([1] + attention_mask)
                 processed_attention_masks.append(curr_attention_mask)
             processed_tokens = torch.stack(processed_tokens, dim=0)
@@ -168,9 +167,9 @@ class CompletionRankingDataset(Dataset):
         data_dict = self.data[idx]
         sentence_dict = {"sentences" : data_dict["sentences"], "completions" : data_dict["completions"]}
         label = data_dict["label"]
-        uid = data_dict["UID"]
+        uid = data_dict["_UID"]
 
-        metadata_keys = [key for key in data_dict if key not in ["sentences", "completions", "label", "UID"]]
+        metadata_keys = [key for key in data_dict if key not in ["sentences", "completions", "label", "_UID"]]
         metadata = {key : data_dict[key] for key in metadata_keys}
 
         if self.backend == "causal":
@@ -180,7 +179,7 @@ class CompletionRankingDataset(Dataset):
         else:
             processed_sentence_dict = self.process_mntp_sentences(sentence_dict)
 
-        return processed_sentence_dict, label, metadata, uid
+        return sentence_dict, processed_sentence_dict, label, metadata, uid
 
 
 def get_collate_fn(args: argparse.ArgumentParser, pad_idx: int):
@@ -194,39 +193,42 @@ def get_collate_fn(args: argparse.ArgumentParser, pad_idx: int):
     if args.backend == "causal":
         return get_causal_collate_fn(pad_idx)
     else:
-        return get_mlm_collate_fn(pad_idx) 
-    
+        return get_mlm_collate_fn(pad_idx)
+
+
 def get_causal_collate_fn(pad_idx):
     def collate_fn(batch):
         # First pad the tensors
-        num_sentences = len([key for key in batch[0][0].keys() if key.endswith("tokens")])
+        num_sentences = len([key for key in batch[0][1].keys() if key.endswith("tokens")])
         sentence_dict_with_padding = {}
         for sentence_idx in range(num_sentences):
             # Tokens
-            tokens = [item[0][f'sentence_{sentence_idx}_tokens'] for item in batch]
+            tokens = [item[1][f'sentence_{sentence_idx}_tokens'] for item in batch]
             padded_tokens = pad_sequence(tokens, batch_first=True, padding_value=pad_idx)
             sentence_dict_with_padding[f'sentence_{sentence_idx}_inputs'] = padded_tokens[:, :-1]
             sentence_dict_with_padding[f'sentence_{sentence_idx}_targets'] = padded_tokens[:, 1:]
 
             # Attention mask
-            attention_masks = [item[0][f'sentence_{sentence_idx}_attn_mask'] for item in batch]
+            attention_masks = [item[1][f'sentence_{sentence_idx}_attn_mask'] for item in batch]
             sentence_dict_with_padding[f'sentence_{sentence_idx}_attn_mask'] = pad_sequence(attention_masks, batch_first=True, padding_value=0)[:, :-1]
 
             # Phrase mask
-            phrase_masks = [item[0][f'sentence_{sentence_idx}_phrase_mask'] for item in batch]
+            phrase_masks = [item[1][f'sentence_{sentence_idx}_phrase_mask'] for item in batch]
             sentence_dict_with_padding[f'sentence_{sentence_idx}_phrase_mask'] = pad_sequence(phrase_masks, batch_first=True, padding_value=0)[:, 1:]
 
         # Next handle the labels and metadata
-        labels = [item[1] for item in batch]
-        metadatas = [item[2] for item in batch]
-        uids = [item[3] for item in batch]
-        return sentence_dict_with_padding, labels, metadatas, uids
+        sentence_dict = [item[0] for item in batch]
+        labels = [item[2] for item in batch]
+        metadatas = [item[3] for item in batch]
+        uids = [item[4] for item in batch]
+        return sentence_dict, sentence_dict_with_padding, labels, metadatas, uids
     return collate_fn
+
 
 def get_mlm_collate_fn(pad_idx):
     def collate_fn(batch):
         # Pad the tensors
-        num_sentences = len([key for key in batch[0][0].keys() if key.endswith("tokens")])
+        num_sentences = len([key for key in batch[0][1].keys() if key.endswith("tokens")])
         sentence_dict_with_padding = {}
         for sentence_idx in range(num_sentences):
             # Tokens and attention masks
@@ -234,10 +236,10 @@ def get_mlm_collate_fn(pad_idx):
             attention_masks = []
             examples_per_batch = []
             for item in batch:
-                tokens += item[0][f'sentence_{sentence_idx}_tokens']
-                attention_masks += item[0][f'sentence_{sentence_idx}_attn_mask']
-                examples_per_batch.append(len(item[0][f'sentence_{sentence_idx}_tokens']))
-                
+                tokens += item[1][f'sentence_{sentence_idx}_tokens']
+                attention_masks += item[1][f'sentence_{sentence_idx}_attn_mask']
+                examples_per_batch.append(len(item[1][f'sentence_{sentence_idx}_tokens']))
+
             padded_tokens = pad_sequence(tokens, batch_first=True, padding_value=pad_idx)
             sentence_dict_with_padding[f'sentence_{sentence_idx}_tokens'] = padded_tokens
             padded_attention_masks = pad_sequence(attention_masks, batch_first=True, padding_value=0)
@@ -249,13 +251,15 @@ def get_mlm_collate_fn(pad_idx):
             sentence_dict_with_padding[f'sentence_{sentence_idx}_indices'] = mask_indices
             targets = torch.cat([item[0][f'sentence_{sentence_idx}_targets'] for item in batch], dim=0)
             sentence_dict_with_padding[f'sentence_{sentence_idx}_targets'] = targets
-            
+
         # Handle the labels and metadata
-        labels = [item[1] for item in batch]
-        metadatas = [item[2] for item in batch]
-        uids = [item[3] for item in batch]
-        return sentence_dict_with_padding, labels, metadatas, uids
+        sentence_dict = [item[0] for item in batch]
+        labels = [item[2] for item in batch]
+        metadatas = [item[3] for item in batch]
+        uids = [item[4] for item in batch]
+        return sentence_dict, sentence_dict_with_padding, labels, metadatas, uids
     return collate_fn
+
 
 def get_dataloader(args):
     """This function constructs the dataset and associated dataloader with collation functions specialized
