@@ -89,7 +89,11 @@ def calculate_logits(sentences: list[str], model: torch.nn.Module, tokenizer: Pr
             logits = model(
                 input_ids[b * batch_size : (b+1) * batch_size, :].contiguous(),
                 attention_mask[b * batch_size : (b+1) * batch_size, :].contiguous(),
-            ).logits
+            )
+            if isinstance(logits, tuple):
+                logits = logits[0]
+            else:
+                logits = logits.logits
             logits = torch.gather(
                 logits,
                 dim=1,
@@ -98,7 +102,11 @@ def calculate_logits(sentences: list[str], model: torch.nn.Module, tokenizer: Pr
         if style == "causal":
             logits = model(
                 input_ids[b * batch_size : (b+1) * batch_size, :].contiguous(),
-            )[0]
+            )
+            if isinstance(logits, tuple):
+                logits = logits[0]
+            else:
+                logits = logits.logits
             logits = torch.cat([logits[0, :len(sentences[0])], logits[1, :len(sentences[1])]], dim=0)
 
         all_logits.append(logits)
