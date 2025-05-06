@@ -247,9 +247,9 @@ def get_mlm_collate_fn(pad_idx):
             sentence_dict_with_padding[f'sentence_{sentence_idx}_examples_per_batch'] = examples_per_batch
 
             # Mask indices and targets
-            mask_indices = torch.cat([item[0][f'sentence_{sentence_idx}_indices'] for item in batch], dim=0)
+            mask_indices = torch.cat([item[1][f'sentence_{sentence_idx}_indices'] for item in batch], dim=0)
             sentence_dict_with_padding[f'sentence_{sentence_idx}_indices'] = mask_indices
-            targets = torch.cat([item[0][f'sentence_{sentence_idx}_targets'] for item in batch], dim=0)
+            targets = torch.cat([item[1][f'sentence_{sentence_idx}_targets'] for item in batch], dim=0)
             sentence_dict_with_padding[f'sentence_{sentence_idx}_targets'] = targets
 
         # Handle the labels and metadata
