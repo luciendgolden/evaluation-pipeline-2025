@@ -3,13 +3,15 @@ from __future__ import annotations
 import json
 import pathlib
 import copy
+from transformers.configuration_utils import PretrainedConfig
 
 
-class ModelConfig():
+class ModelConfig(PretrainedConfig):
 
-    def __init__(self: ModelConfig, config_file: pathlib.Path | str | None = None):
+    def __init__(self: ModelConfig, config_file: pathlib.Path | str | None = None, **kwargs):
         """
         """
+        super().__init__(**kwargs)
         if config_file is None:
             self.attention_bias = True
             self.attention_dropout_p = 0.1

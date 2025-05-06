@@ -6,7 +6,7 @@ from transformers.activations import gelu_new
 import math
 from torch import _softmax_backward_data as _softmax_backward_data
 import torch.nn.functional as F
-from model_configuration import ModelConfig
+from .model_configuration import ModelConfig
 
 from transformers.modeling_utils import PreTrainedModel
 from transformers.modeling_outputs import (
@@ -292,7 +292,7 @@ class MyModel(MyModelPreTrainedModel):
         self.hidden_size = config.hidden_size
 
         self.embedding = Embedding(config)
-        self.layers = [Layer(config) for _ in range(config.num_layers)]
+        self.layers = nn.ModuleList([Layer(config) for _ in range(config.num_layers)])
 
     def get_input_embeddings(self):
         return self.embedding.word_embedding
@@ -334,6 +334,8 @@ class MyModel(MyModelPreTrainedModel):
         self,
         input_ids: torch.Tensor,
         attention_mask: Optional[torch.Tensor] = None,
+        token_type_ids: Optional[torch.Tensor] = None,
+        position_ids: Optional[torch.Tensor] = None,
         output_hidden_states: Optional[bool] = None,
         output_attentions: Optional[bool] = None,
         return_dict: Optional[bool] = None,
@@ -370,6 +372,7 @@ class MyModelForCausalLM(MyModelPreTrainedModel):
         self.model = MyModel(config, **kwargs)
         self.vocab_size = config.vocab_size
         self.lm_head = CausalHead(config, self.model.embedding.word_embedding.weight)
+        self.hidden_size = config.hidden_size
 
     def get_output_embeddings(self):
         return self.lm_head.lm_head[-1].weight
@@ -378,10 +381,10 @@ class MyModelForCausalLM(MyModelPreTrainedModel):
         self.lm_head.lm_head[-1].weight = new_embeddings
 
     def get_input_embeddings(self):
-        return self.embedding.word_embedding
+        return self.model.embedding.word_embedding
 
     def set_input_embeddings(self, value):
-        self.embedding.word_embedding = value
+        self.model.embedding.word_embedding = value
 
     def set_decoder(self, decoder):
         self.model = decoder
@@ -396,10 +399,13 @@ class MyModelForCausalLM(MyModelPreTrainedModel):
         self,
         input_ids: torch.Tensor,
         attention_mask: Optional[torch.Tensor] = None,
-        labels: Optional[torch.LongTensor] = None,
-        output_attentions: Optional[bool] = None,
+        token_type_ids: Optional[torch.Tensor] = None,
+        position_ids: Optional[torch.Tensor] = None,
         output_hidden_states: Optional[bool] = None,
-        return_dict: Optional[bool] = None
+        output_attentions: Optional[bool] = None,
+        return_dict: Optional[bool] = None,
+        labels: Optional[torch.LongTensor] = None,
+        **kwargs
     ) -> Union[tuple, CausalLMOutput]:
 
         sequence_output, contextualized_embeddings, attention_probs = self.model.get_contextualized_embeddings(input_ids, attention_mask)

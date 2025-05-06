@@ -9,6 +9,7 @@ TODO_TEXT = """# TODO
  - In the config file, reflect the pervious changes, i.e. change the AutoModel, architecture, add AutoModelForSequenceModeling, etc.
  - In the config file, edit the model configurations to reflect your configurations (so changing hidden size, adding a parameter, etc.)
  - In the model_configuration file, reflect the changes made in the config file.
+ - Make sure that the model keys in the bin file the same as the ones in the modeling.py file.
  - In the special_tokens_map file, change the values of the special tokens, remove those not used, add new ones.
  - In the tokenizer_config file, change the value of the tokenizer class, special tokens, remove unused special tokens.
  - Add the behaviours you want when tokenizing sentences. For example if you want a sperator between a pair of sentences, add:
@@ -81,7 +82,7 @@ if __name__ == "__main__":
     args = _parse_arguments()
 
     shutil.copytree(args.dummy_directory, args.save_directory)
-    shutil.copy(args.model_weights_path, args.save_directory / "pytorch_model.pt")
+    shutil.copy(args.model_weights_path, args.save_directory / "pytorch_model.bin")
     shutil.copy(args.tokenizer_path, args.save_directory / "tokenizer.json")
 
     with (args.save_directory / "TODO.md").open("w") as todo_file:
