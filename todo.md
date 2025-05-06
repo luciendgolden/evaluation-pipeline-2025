@@ -7,3 +7,4 @@
 (D) Create a example on how to implement special tokenizer encoding +HF-transform #tutorial {cm:2025-04-29}
 (B) Double check all the PyTorch implementation +PyTorch-checks #run-check {cm:2025-04-29}
 (E) Make the if else into factories +Factorization #refactor
+(A) Move all evaluations into the evaluation_pipeline to make it a python module +Modulization #module
