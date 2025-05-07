@@ -18,7 +18,7 @@ We also welcome pull requests!
 To be able to use the pipeline you need to install the requirements.txt packages.
 
 > [!Warning]
-> These packages were installed using Python 3.13, in case some of the packages are not compatible with your Python version (either because the version is too recent or is not supported). In that case, you could either update your Python version or pip/conda install the following packages: `transformers`, `torch`, `scikit-learn`, `numpy`, `pandas`, `statsmodels`, and `nltk`.
+> These packages were installed using Python 3.13, in case some of the packages are not compatible with your Python version (either because the version is too recent or is not supported). In that case, you could either update your Python version or pip/conda install the following packages: `transformers`, `torch`, `scikit-learn`, `numpy`, `pandas`, `statsmodels`, `datasets`, and `nltk`.
 
 ## Data
 
@@ -32,7 +32,9 @@ On both pages, make sure you're logged in to your HuggingFace account, and reque
 
 For DevBench data, run `devbench/download_data.sh` from the root directory of this repository.
 
-For EWoK data, run `ewok/dl_and_filter.py` from the root directory of this repository.
+For EWoK data, run `python -m evaluation_pipeline.ewok.dl_and_filter` from the root directory of this repository.
+
+For the fast EWoK data, we provide a password-protected ZIP file called `ewok_fast.zip`.
 
 ## Evaluation 
 This year, we provide different sets of evaluation tasks for different tracks.
@@ -94,15 +96,8 @@ If you are participating in the multimodal track, use these instructions.
 First, run your models on the text-only evaluations, including BLiMP, the BLiMP supplement, EWoK, and (Super)GLUE. As long as your model is compatible with the AutoModelForCausalLM and AutoModelForSequenceClassification classes, you can use the same instructions as above to evaluate on the text-only tasks.
 
 In addition, use the following command to evaluate on Winoground (where we use an unpaired text score) and VQA (accuracy with 7 distractors).
-```
-./eval_multimodal.sh <path_to_model>
-```
-
-Also use the following command to evaluate on DevBench:
-```
-./eval_devbench.sh <path_to_model> <model_type> (<image_model>)
-```
-Here, `model_type` refers to the architecture of the model. For example, for `babylm/git-2024`, the model type would be `git`. See the `eval_devbench.sh` script for more information.
+> [!Note]
+> Currently under construction.
 
 ## Baselines
 The baseline models are available from the BabyLM huggingface page here: https://huggingface.co/babylm . All models for this year's challenge have `-2024` appended to their names.
