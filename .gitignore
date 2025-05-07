@@ -173,6 +173,7 @@ cython_debug/
 # Data
 */data/
 data/
+evaluation_data/
 
 # Results
 *_results/
