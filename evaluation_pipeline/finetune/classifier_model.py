@@ -72,8 +72,8 @@ class ModelForSequenceClassification(nn.Module):
                 last token to the classification head.
         """
         super().__init__()
-        self.transformer: nn.Module = AutoModel.from_pretrained(config.model_name_or_path, trust_remote_code=True)
-        model_config = AutoConfig.from_pretrained(config.model_name_or_path, trust_remote_code=True)
+        self.transformer: nn.Module = AutoModel.from_pretrained(config.model_name_or_path, trust_remote_code=True, revision=config.revision_name)
+        model_config = AutoConfig.from_pretrained(config.model_name_or_path, trust_remote_code=True, revision=config.revision_name)
         hidden_size = model_config.hidden_size
         self.classifier: nn.Module = ClassifierHead(config, hidden_size)
         self.take_final: bool = config.take_final

@@ -28,6 +28,7 @@ def parse_args():
         args.output_dir /= "main"
     else:
         args.output_dir /= args.revision_name
+    args.output_dir /= "zero_shot"
     args.output_dir /= args.backend
     args.output_dir /= "reading"
     if args.backend in ["mlm", "mntp"]:

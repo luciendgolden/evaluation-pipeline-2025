@@ -28,7 +28,7 @@ def _parse_arguments() -> argparse.Namespace:
 
     # Required Parameters
     parser.add_argument("--results_dir", default="results", type=pathlib.Path, help="The output directory where the results will be written.")
-    parser.add_argument("--train_data", default="../glue/data/mnli.subs.jsonl", type=pathlib.Path, help="Path to file containing the training dataset, we expect it to be in a JSONL format.")
+    parser.add_argument("--train_data", default="glue/data/mnli.subs.jsonl", type=pathlib.Path, help="Path to file containing the training dataset, we expect it to be in a JSONL format.")
     parser.add_argument("--model_name_or_path", default="ltg/gpt-bert-babylm-small", type=pathlib.Path, help="The local path to the model binary.")
     parser.add_argument("--metrics", default=["accuracy"], nargs='+', help="List of metrics to evaluate for the model (accuracy, f1, and mcc).", choices=["accuracy", "f1", "mcc"])
     parser.add_argument("--num_labels", default=3, type=int, help="The number of labels in the dataset. (3 for MNLI, 2 for all other tasks)")
@@ -41,10 +41,11 @@ def _parse_arguments() -> argparse.Namespace:
     parser.add_argument("--valid_data", type=pathlib.Path, help="Path to file containing the validation dataset to validate on, we expect it to be in a JSONL format.")
     parser.add_argument("--predict_data", type=pathlib.Path, help="Path to file containing the dataset to predict on, we expect it to be in a JSONL format.")
     parser.add_argument("--save", action=argparse.BooleanOptionalAction, default=False, help="Whether to save the fine-tuned model.")
-    parser.add_argument("--save_dir", type=pathlib.Path, help="The directory in which to save the fine-tuned model.")
+    parser.add_argument("--save_dir", default="finetuned-models", type=pathlib.Path, help="The directory in which to save the fine-tuned model.")
     parser.add_argument("--keep_best_model", action=argparse.BooleanOptionalAction, default=True, help="Whether to keep the model with the best score based on the metric_for_valid. (If False, then the model at the end of fine-tuning will be used for eval and prediction)")
     parser.add_argument("--metric_for_valid", type=str, help="The metric used to compare the model when finding the best model.", choices=["accuracy", "mcc", "f1"])
     parser.add_argument("--higher_is_better", action=argparse.BooleanOptionalAction, default=True, help="Wheter a higher value for the metric for valid is better or not.")
+    parser.add_argument("--revision_name", default=None, type=str, help="Name of the checkpoint/version of the model to test. (If None, the main will be used)")
 
     # Hyperparameters
     parser.add_argument("--batch_size", default=16, type=int, help="The batch size during fine-tuning.")
@@ -93,14 +94,21 @@ if __name__ == "__main__":
 
     model_name: str = args.model_name_or_path.stem
     if args.task == "mnli":
-        args.task: str = args.predict_data.stem.split(".")[0]
-    output_path: pathlib.Path = args.results_dir / model_name / args.task / "finetune"
+        if args.valid_data is not None:
+            args.task: str = args.valid_data.stem.split(".")[0]
+        elif args.predict_data is not None:
+            args.task: str = args.predict_data.stem.split(".")[0]
+    if args.revision_name is None:
+        revision_name = "main"
+    else:
+        revision_name = args.revision_name
+    output_path: pathlib.Path = args.results_dir / model_name / revision_name / "finetune" / args.task
     output_path.mkdir(parents=True, exist_ok=True)
     if args.save:
         args.save_path: pathlib.Path = args.save_dir / model_name / args.task
         args.save_path.mkdir(parents=True, exist_ok=True)
 
-    tokenizer: PreTrainedTokenizerBase = AutoTokenizer.from_pretrained(args.model_name_or_path, trust_remote_code=True)
+    tokenizer: PreTrainedTokenizerBase = AutoTokenizer.from_pretrained(args.model_name_or_path, trust_remote_code=True, revision=args.revision_name)
 
     train_dataloader: DataLoader = _load_labeled_dataset(args.train_data, args.batch_size, tokenizer, True, True, args)
 

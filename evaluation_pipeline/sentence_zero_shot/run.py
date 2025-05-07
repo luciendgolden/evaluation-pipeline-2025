@@ -145,7 +145,7 @@ def main():
         revision_name = "main"
     else:
         revision_name = args.revision_name
-    args.output_path = args.output_dir / args.model_name / revision_name / args.backend / args.task / dataset
+    args.output_path = args.output_dir / args.model_name / revision_name / "zero_shot" / args.backend / args.task / dataset
     args.output_path.mkdir(parents=True, exist_ok=True)
 
     # Get results
