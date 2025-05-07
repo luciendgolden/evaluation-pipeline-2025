@@ -4,35 +4,25 @@
 
 ## Overview
 
-**[30 August] The hidden evaluation tasks have been released!**
-
-This code provides the backend for the BabyLM Challenge's evaluation pipeline. It is a fork of EleutherAI's `lm-evaluation-harness` (citation and details below). We provide support for zero-shot evaluations on BLiMP, as well as scripts for training low-rank adapters on models for GLUE tasks.
+This code provides the backend for the BabyLM Challenge's evaluation pipeline. This year we decided to implement it from scratch. It currently supports 3 different evaluation types: fine-tuning (sequence), sentence-level zero-shot logits calculations, and word level logits calculations (although the last one is implemented for a specific task).
 
 If you have questions about or suggestions for this code, please open an issue and consider [joining our Slack](https://join.slack.com/t/babylmchallenge/shared_invite/zt-2gqgqaumu-5ebxxADuT561aT_ooKbT1Q). Join the `#evaluation` channel, which is dedicated to support for use of this repository.
 
 We also welcome pull requests!
 
-## Artifacts
-A spreadsheet containing information about the BabyLM 2024 model submissions may be found [here](https://docs.google.com/spreadsheets/d/182IjCUiaVYSuJq9GAwZeeb-50bxBlY4qEMOdiCh6i-g/edit?usp=sharing). This includes hyperparameters, as well as links to download the models and results.
-
 ## Install
 
-To install the `lm-eval` package from the github repository, run:
+> [!Note]
+> The package is currently not installable given that it is a first version. Instead we recommend installing the packages needed and using it as a python module, i.e. to run a part of the pipeline (for example finetuning) you would to do: `python -m evaluation_pipeline.finetune.run ...` from the root folder (the folder that contains the evaluation_pipeline folder).
 
-```bash
-git clone https://github.com/babylm/evaluation-pipeline-2024
-cd evaluation-pipeline-2024
-pip install -e .
-pip install minicons
-pip install --upgrade accelerate
-```
+To be able to use the pipeline you need to install the requirements.txt packages.
 
-If you need a previous version of torch and/or CUDA, install it after running the above commands.
+> [!Warning]
+> These packages were installed using Python 3.13, in case some of the packages are not compatible with your Python version (either because the version is too recent or is not supported). In that case, you could either update your Python version or pip/conda install the following packages: `transformers`, `torch`, `scikit-learn`, `numpy`, `pandas`, `statsmodels`, and `nltk`.
 
 ## Data
-**The hidden eval tasks have been released! See instructions here for downloading EWoK and DevBench. See instructions under Evaluation for running EWoK and DevBench evaluations.**
 
-Download the `evaluation_data` folder in [this OSF directory](https://osf.io/ad7qg/). Place it in the root directory of this repository.
+Download the `evaluation_data` folder in [this OSF directory](https://osf.io/ryjfm/). Place it in the root directory of this repository.
 
 Due to large file sizes and license restrictions, we do not provide images in the OSF directory. Instead, we link to HuggingFace datasets, two of which require approval (which is immediate). Go to these URLs:
 - [Winoground](https://huggingface.co/datasets/facebook/winoground)
