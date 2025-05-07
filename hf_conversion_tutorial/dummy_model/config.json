@@ -1,7 +1,4 @@
 {
-    "architectures": [
-          "MyModelFoCausalLM"
-      ],
       "auto_map": {
           "AutoConfig": "model_configuration.ModelConfig",
           "AutoModel": "modeling.MyModel",
@@ -24,4 +21,4 @@
     "num_layers": 6,
     "rope_theta": 10000,
     "vocab_size": 6144
-  }
+}
