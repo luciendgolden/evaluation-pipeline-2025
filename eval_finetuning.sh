@@ -12,9 +12,9 @@ for task in {boolq,rte,multirc,wsc}; do
         
     python -m evaluation_pipeline.finetune.run \
         --model_name_or_path "$MODEL_PATH" \
-        --train_data "glue/data/$task.train.jsonl" \
-        --valid_data "glue/data/$task.valid.jsonl" \
-        --predict_data "glue/data/$task.test.jsonl" \
+        --train_data "evaluation_pipeline/full_eval/glue_filtered/$task.train.jsonl" \
+        --valid_data "evaluation_pipeline/full_eval/glue_filtered/$task.valid.jsonl" \
+        --predict_data "evaluation_pipeline/full_eval/glue_filtered/$task.test.jsonl" \
         --task "$task" \
         --num_labels 2 \
         --batch_size $BSZ \
@@ -34,9 +34,9 @@ for task in {mrpc,qqp}; do
         
     python -m evaluation_pipeline.finetune.run \
         --model_name_or_path "$MODEL_PATH" \
-        --train_data "glue/data/$task.train.jsonl" \
-        --valid_data "glue/data/$task.valid.jsonl" \
-        --predict_data "glue/data/$task.test.jsonl" \
+        --train_data "evaluation_pipeline/full_eval/glue_filtered/$task.train.jsonl" \
+        --valid_data "evaluation_pipeline/full_eval/glue_filtered/$task.valid.jsonl" \
+        --predict_data "evaluation_pipeline/full_eval/glue_filtered/$task.test.jsonl" \
         --task "$task" \
         --num_labels 2 \
         --batch_size $BSZ \
@@ -54,9 +54,9 @@ done
 
 python -m evaluation_pipeline.finetune.run \
     --model_name_or_path "$MODEL_PATH" \
-    --train_data "glue/data/mnli.train.jsonl" \
-    --valid_data "glue/data/mnli.valid.jsonl" \
-    --predict_data "glue/data/mnli.test.jsonl" \
+    --train_data "evaluation_pipeline/full_eval/glue_filtered/mnli.train.jsonl" \
+    --valid_data "evaluation_pipeline/full_eval/glue_filtered/mnli.valid.jsonl" \
+    --predict_data "evaluation_pipeline/full_eval/glue_filtered/mnli.test.jsonl" \
     --task "$task" \
     --num_labels 3 \
     --batch_size $BSZ \
@@ -73,9 +73,9 @@ python -m evaluation_pipeline.finetune.run \
 
 python -m evaluation_pipeline.finetune.run \
     --model_name_or_path "$MODEL_PATH" \
-    --train_data "glue/data/mnli.train.jsonl" \
-    --valid_data "glue/data/mnli-mm.valid.jsonl" \
-    --predict_data "glue/data/mnli-mm.test.jsonl" \
+    --train_data "evaluation_pipeline/full_eval/glue_filtered/mnli.train.jsonl" \
+    --valid_data "evaluation_pipeline/full_eval/glue_filtered/mnli-mm.valid.jsonl" \
+    --predict_data "evaluation_pipeline/full_eval/glue_filtered/mnli-mm.test.jsonl" \
     --task "$task" \
     --num_labels 3 \
     --batch_size $BSZ \
