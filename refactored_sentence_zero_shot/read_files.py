@@ -50,6 +50,8 @@ def decode(line: str, file_name: pathlib.Path, task: str) -> dict[str, str]:
         data_dict = decode_blimp(raw_dict, file_name)
     elif task == "ewok":
         data_dict = decode_ewok(raw_dict)
+    elif task == "wug_adjective":
+        data_dict = decode_wug_adjective(raw_dict)        
     elif task == "entity_tracking":
         data_dict = decode_entity_tracking(raw_dict, file_name)
     else:
@@ -80,7 +82,7 @@ def decode_blimp(raw_dict: dict[str, Any], file_name: pathlib.Path) -> dict[str,
         }
         if pair["field"] == "syntax_semantics":  # Standardizing the style of this field
             pair["field"] = "syntax/semantics"
-    else:  # For the supplemetal tasks, there is no field or UID
+    else:  # For the supplemental tasks, there is no field or UID
         pair = {
             "sentences": [raw_dict["sentence_good"], raw_dict["sentence_bad"]],
             "completions": [raw_dict["sentence_good"], raw_dict["sentence_bad"]],
@@ -114,6 +116,27 @@ def decode_ewok(raw_dict: dict[str, Any]) -> dict[str, str]:
         "context_type": raw_dict["ContextType"],
         "context_contrast": raw_dict["ContextDiff"],
         "target_contrast": raw_dict["TargetDiff"],
+    }
+
+    return pair
+
+
+def decode_wug_adjective(raw_dict: dict[str, Any]) -> dict[str, str]:
+    """This function takes a dictionary of a single datapoint of the wug test
+    datafile and returns a dictionary of terms to be used by the evaluation.
+
+    Args:
+        raw_dict(dict[str, Any]): A dictionary from a single datapoint of a BLiMP datafile.
+        file_name(pathlib.Path): When no UID is mentioned, we take the file name.
+
+    Returns:
+        dict[str, str]: A dictionary with values used for evaluation
+    """
+    pair = {
+        "sentences": raw_dict["sentences"].split('\t'),
+        "ratio": float(raw_dict["ratio"]),
+        "label": 0,
+        "UID": "wug_adjective",
     }
 
     return pair
