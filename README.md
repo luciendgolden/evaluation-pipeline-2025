@@ -70,7 +70,7 @@ For the fast EWoK data, we provide a password-protected ZIP file called `ewok_fa
 This year, we provide different sets of evaluation tasks for different tracks.
 
 ### Text-only evaluation
-If you are participating in one of the text-only tracks (Strict or Strict-small), use these instructions.
+If you are participating in one of the text-only tracks (Strict or Strict-small) or interaction track, use these instructions.
 #### Zero-shot evaluation
 
 Use the following shell script to evaluate on the full zero-shot evaluations:
@@ -129,14 +129,48 @@ For the multimodal tracks, we release [Flamingo](https://proceedings.neurips.cc/
 
 Here are scores for each model on each evaluation task. Each task score is an unweighted mean of each subtask score within that task. We also show macroaverages, which are simply means of each task score (i.e., means across a row of the table). NOTE: for GLUE, we average *accuracies* for all tasks except QQP and MRPC (where we use F1 scores). See end of README for more detailed score breakdowns.
 
+> [!Note]
+> The evaluations are run on the final model (the one trained for 10 epochs (100M words in Strict-small and 1B words in Strict and Interaction)).
+
 **Strict-small Track (10M)**
+
+*Causal*
 
 | Model | BLiMP | BLiMP Supplement | EWoK | Reading | Entity Tracking | WUGs | GLUE | *Macroaverage* |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | **71.66** | **63.21** | 49.49 |
+|GPT-BERT (Mixed) | 69.62 | 61.56 | **50.23** |
+|GPT-BERT (Masked-focus) | 65.22 | 59.49 | 49.47 |
 
-The LTG-BERT scores here are lower than expected given that this was last year's winning system. We believe this is because of our choice of hyperparameters---specifically, the number of epochs: we trained all models for approximately 20 epochs. LTG-BERT benefits from training for many more epochs than other models can feasibly train for without overfitting, so perhaps it would perform better with longer training. This is somewhat supported by its results on the Strict track, where the same number of epochs corresponds to many more training steps.
+*MNTP/MLM*
+
+| Model | BLiMP | BLiMP Supplement | EWoK | Reading | Entity Tracking | WUGs | GLUE | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 69.07 | **64.33** | 49.62 |
+|GPT-BERT (Mixed) | **71.29** | 63.30 | 49.93 |
+|GPT-BERT (Masked-focus) | 70.36 | 63.71 | **49.95** |
+
 
 **Strict Track (100M)**
+
+*Causal*
+
+| Model | BLiMP | BLiMP Supplement | EWoK | Reading | Entity Tracking | WUGs | GLUE | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | **79.29** | **70.42** | **52.32** |
+|GPT-BERT (Mixed) | 78.37 | 69.23 | 51.79 |
+|GPT-BERT (Masked-focus) | 74.56 | 63.63 | 51.57 |
+
+*MNTP/MLM*
+
+| Model | BLiMP | BLiMP Supplement | EWoK | Reading | Entity Tracking | WUGs | GLUE | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus)
+|GPT-BERT (Mixed)
+|GPT-BERT (Masked-focus)
+
+
+**Interaction Track**
 
 | Model | BLiMP | BLiMP Supplement | EWoK | Reading | Entity Tracking | WUGs | GLUE | *Macroaverage* |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
