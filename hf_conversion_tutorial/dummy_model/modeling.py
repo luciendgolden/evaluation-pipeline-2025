@@ -266,6 +266,7 @@ class Layer(nn.Module):
 class MyModelPreTrainedModel(PreTrainedModel):
     config_class = ModelConfig
     supports_gradient_checkpointing = False
+    base_model_prefix = "model"
 
     def _set_gradient_checkpointing(self, module, value=False):
         raise NotImplementedError("Gradient checkpointing is not supported by this model")
