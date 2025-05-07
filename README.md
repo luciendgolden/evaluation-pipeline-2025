@@ -1,4 +1,4 @@
-# 2024 BabyLM Challenge Evaluation Pipeline
+# 2025 BabyLM Challenge Evaluation Pipeline
 
 ![BabyLM Challenge](assets/babylm.png)
 
