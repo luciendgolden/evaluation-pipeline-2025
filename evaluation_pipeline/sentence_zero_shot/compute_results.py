@@ -46,7 +46,7 @@ def update_subset_to_stats(subset_to_stats, metadatas):
                 temp_dict[key] = {"total" : Counter(), "correct" : Counter()}
 
 
-def rank_and_evaluate(args, subset_to_stats, all_log_probs, raw_sentences, labels, metadatas, uids, predictions, predictions2):
+def rank_and_evaluate(args, subset_to_stats, all_log_probs, raw_sentences, labels, metadatas, uids, predictions):
     """This function takes as input model log-probabilities for each candidate sentence/completion
     and ground-truth labels, determines the model predictions and updates the result and prediction dictionaries.
     """
@@ -62,14 +62,12 @@ def rank_and_evaluate(args, subset_to_stats, all_log_probs, raw_sentences, label
 
             if args.save_predictions:
                 num_id_matches = len(predictions[temp][uid])
-                predictions[temp][uid].append({"id" : f"{uid}_{num_id_matches}", "pred" : chosen_sentence})
-                predictions2[temp][uid].append({"id" : f"{uid}_{num_id_matches}", "pred" : raw_sentence_dict["completions"][chosen_sentence]})
+                predictions[temp][uid].append({"id" : f"{uid}_{num_id_matches}", "pred" : raw_sentence_dict["completions"][chosen_sentence]})
 
 
 def compute_causal_results(args, model, dataloader, temperatures):
     subset_to_stats = {temp : {} for temp in temperatures}
     predictions = {temp : defaultdict(list) for temp in subset_to_stats}
-    predictions2 = {temp : defaultdict(list) for temp in subset_to_stats}
     final_predictions = {temp : {} for temp in subset_to_stats}
 
     for raw_sentences, sentence_dict, labels, metadatas, uids in tqdm(dataloader):
@@ -95,23 +93,23 @@ def compute_causal_results(args, model, dataloader, temperatures):
                 phrase_log_probs = torch.sum(target_log_probs * sentence_dict[f"{prefix}_phrase_mask"].to(DEVICE), dim=1)
                 all_log_probs[temp].append(phrase_log_probs.cpu())
 
-        rank_and_evaluate(args, subset_to_stats, all_log_probs, raw_sentences, labels, metadatas, uids, predictions, predictions2)
+        rank_and_evaluate(args, subset_to_stats, all_log_probs, raw_sentences, labels, metadatas, uids, predictions)
+        break
 
     if args.save_predictions:
         for i in temperatures:
             temp_pred = dict()
-            for k, v in predictions2[i].items():
+            for k, v in predictions[i].items():
                 temp_pred[k] = dict()
                 temp_pred[k]["predictions"] = v
             final_predictions[i] = temp_pred
 
-    return subset_to_stats, predictions, final_predictions
+    return subset_to_stats, final_predictions
 
 
 def compute_mlm_results(args, model, dataloader, temperatures):
     subset_to_stats = {temp : {} for temp in temperatures}
     predictions = {temp : defaultdict(list) for temp in subset_to_stats}
-    predictions2 = {temp : defaultdict(list) for temp in subset_to_stats}
     final_predictions = {temp : {} for temp in subset_to_stats}
 
     for raw_sentences, sentence_dict, labels, metadatas, uids in tqdm(dataloader):
@@ -166,14 +164,14 @@ def compute_mlm_results(args, model, dataloader, temperatures):
                     curr_idx += examples_per_batch
                 all_log_probs[temp].append(torch.tensor(summed_log_probs))
 
-        rank_and_evaluate(args, subset_to_stats, all_log_probs, raw_sentences, labels, metadatas, uids, predictions, predictions2)
+        rank_and_evaluate(args, subset_to_stats, all_log_probs, raw_sentences, labels, metadatas, uids, predictions)
 
     if args.save_predictions:
         for i in temperatures:
             temp_pred = dict()
-            for k, v in predictions2[i].items():
+            for k, v in predictions[i].items():
                 temp_pred[k] = dict()
                 temp_pred[k]["predictions"] = v
             final_predictions[i] = temp_pred
 
-    return subset_to_stats, predictions, final_predictions
+    return subset_to_stats, final_predictions

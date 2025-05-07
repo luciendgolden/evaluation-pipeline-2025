@@ -22,7 +22,7 @@ def _parse_arguments():
     parser.add_argument("--data_path", default="", type=pathlib.Path, help="Path to the data directory")
     parser.add_argument("--output_dir", default="results", type=pathlib.Path, help="Path to the data directory")
     parser.add_argument("--task", default="blimp", type=str, help="The task that is being evaluated.",
-                        choices=["blimp", "ewok", "entity_tracking"])
+                        choices=["blimp", "ewok", "entity_tracking", "wug"])
 
     parser.add_argument("--model_path_or_name", default="ltg/gpt-bert-babylm-small", type=str, help="Path to the model to evaluate.")
     parser.add_argument("--backend", default="mlm", type=str, help="The evaluation backend strategy", choices=["mlm", "causal", "mntp"])
@@ -79,14 +79,14 @@ def process_results(args: argparse.ArgumentParser, results: dict):
 
     # Average accuracies
     average_accuracies = {}
-    if args.task in ["blimp", "ewok"]:
+    if args.task in ["blimp", "ewok", "wug"]:
         for temp, accuracy in accuracies.items():
             average_accuracies[temp] = sum(accuracy["UID"].values()) / len(accuracy["UID"].values())
     else:
         splits = ["regular", "ambiref", "move_contents"]
         for temp, subdomain_dict in accuracies.items():
             split_accs = []
-            split_dict = subdomain_dict["subset"]
+            split_dict = subdomain_dict["UID"]
             for split in splits:
                 split_keys = [key for key in split_dict if key.startswith(split)]
                 curr_acc = sum([split_dict[key] for key in split_keys]) / len(split_keys)
@@ -124,17 +124,9 @@ def create_evaluation_report(temperature: float, avg_accuracy: torch.Tensor, acc
     print(file=file)
 
 
-def save_predictions(args, predictions, predictions2, best_temp):
-    temp_predictions = predictions[best_temp]
-    flattened_predictions = []
-    for _, prediction in temp_predictions.items():
-        flattened_predictions.append(prediction)
-
-    with (args.output_path / "predictions_at_best_temperature.json").open("w") as f:
-        json.dump(flattened_predictions, f)
-
+def save_predictions(args, predictions, best_temp):
     with (args.output_path / "predictions.json").open("w") as f:
-        json.dump(predictions2[best_temp], f)
+        json.dump(predictions[best_temp], f)
 
 
 def main():
@@ -152,7 +144,7 @@ def main():
     model = get_model(args)
     dataloader = get_dataloader(args)
     temperatures = get_temperatures(args)
-    results, predictions, predictions2 = compute_results(args, model, dataloader, temperatures)
+    results, predictions = compute_results(args, model, dataloader, temperatures)
 
     # Process results
     accuracies, average_accuracies = process_results(args, results)
@@ -172,7 +164,7 @@ def main():
 
     # Save predictions
     if args.save_predictions:
-        save_predictions(args, predictions, predictions2, best_temp)
+        save_predictions(args, predictions, best_temp)
 
 
 if __name__ == "__main__":

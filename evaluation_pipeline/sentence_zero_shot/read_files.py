@@ -50,8 +50,8 @@ def decode(line: str, file_name: pathlib.Path, task: str) -> dict[str, str]:
         data_dict = decode_blimp(raw_dict, file_name)
     elif task == "ewok":
         data_dict = decode_ewok(raw_dict)
-    elif task == "wug_adj_nominalization":
-        data_dict = decode_wug_adj_nominalization(raw_dict)        
+    elif task == "wug":
+        data_dict = decode_wug_adj_nominalization(raw_dict)
     elif task == "entity_tracking":
         data_dict = decode_entity_tracking(raw_dict, file_name)
     else:
@@ -77,7 +77,6 @@ def decode_blimp(raw_dict: dict[str, Any], file_name: pathlib.Path) -> dict[str,
             "label": 0,
             "field": raw_dict["field"],
             "UID": raw_dict["UID"],
-            "_UID": raw_dict["UID"],
             "linguistics_term": raw_dict["linguistics_term"],
         }
         if pair["field"] == "syntax_semantics":  # Standardizing the style of this field
@@ -87,10 +86,9 @@ def decode_blimp(raw_dict: dict[str, Any], file_name: pathlib.Path) -> dict[str,
             "sentences": [raw_dict["sentence_good"], raw_dict["sentence_bad"]],
             "completions": [raw_dict["sentence_good"], raw_dict["sentence_bad"]],
             "label": 0,
-            "field": "supplemental",
+            "field": "supplement",
             "UID": file_name.stem,
-            "_UID": file_name.stem,
-            "linguistics_term": "supplemental",
+            "linguistics_term": "supplement",
         }
 
     return pair
@@ -112,7 +110,6 @@ def decode_ewok(raw_dict: dict[str, Any]) -> dict[str, str]:
         "completions": [raw_dict["Target1"], raw_dict["Target2"]],
         "label": 0,
         "UID": raw_dict["Domain"],
-        "_UID": raw_dict["Domain"],
         "context_type": raw_dict["ContextType"],
         "context_contrast": raw_dict["ContextDiff"],
         "target_contrast": raw_dict["TargetDiff"],
@@ -134,6 +131,7 @@ def decode_wug_adj_nominalization(raw_dict: dict[str, Any]) -> dict[str, str]:
     """
     pair = {
         "sentences": raw_dict["sentences"].split('\t'),
+        "completions": raw_dict["sentences"].split('\t'),
         "ratio": float(raw_dict["ratio"]),
         "label": 0,
         "UID": "wug_adj_nominalization",
@@ -154,13 +152,11 @@ def decode_entity_tracking(raw_dict: dict[str, Any], file_name: pathlib.Path) ->
         dict[str, str]: A dictionary with values used for evaluation
     """
     subset = f'{file_name.stem}_{raw_dict["numops"]}_ops'
-    uid = f'{file_name.stem}_example_{raw_dict["example_id"]}'
     pair = {
         "sentences" : [raw_dict["input_prefix"] + option for option in raw_dict["options"]],
         "completions" : [option for option in raw_dict["options"]],
         "label" : 0,
-        "subset" : subset,
-        "_UID" : uid
+        "UID" : subset
     }
 
     return pair

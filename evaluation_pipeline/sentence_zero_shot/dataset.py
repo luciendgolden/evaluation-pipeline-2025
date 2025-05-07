@@ -167,9 +167,9 @@ class CompletionRankingDataset(Dataset):
         data_dict = self.data[idx]
         sentence_dict = {"sentences" : data_dict["sentences"], "completions" : data_dict["completions"]}
         label = data_dict["label"]
-        uid = data_dict["_UID"]
+        uid = data_dict["UID"]
 
-        metadata_keys = [key for key in data_dict if key not in ["sentences", "completions", "label", "_UID"]]
+        metadata_keys = [key for key in data_dict if key not in ["sentences", "completions", "label"]]
         metadata = {key : data_dict[key] for key in metadata_keys}
 
         if self.backend == "causal":
