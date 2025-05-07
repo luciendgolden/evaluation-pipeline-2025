@@ -94,7 +94,6 @@ def compute_causal_results(args, model, dataloader, temperatures):
                 all_log_probs[temp].append(phrase_log_probs.cpu())
 
         rank_and_evaluate(args, subset_to_stats, all_log_probs, raw_sentences, labels, metadatas, uids, predictions)
-        break
 
     if args.save_predictions:
         for i in temperatures:
