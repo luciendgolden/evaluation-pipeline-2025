@@ -97,6 +97,7 @@ if __name__ == "__main__":
                 print(f"{index}\t{values:.4f}", file=f)
 
     results = []
+    report_values = []
 
     for dv in variables:
         # baseline model
@@ -123,11 +124,17 @@ if __name__ == "__main__":
             "AIC": aic_model,
             "Change in AIC from baseline": aic_model-aic_baseline,
         })
+        if "RT" in dv:
+            report_values.append(((R2_model-R2_baseline)/(1-R2_baseline)) * 100)
 
     predictability_file = args.output_dir / "predictive_power.jsonl"
     with predictability_file.open("w") as fj:
         for res in results:
             print(json.dumps(res), file=fj)
+
+    predictability_file = args.output_dir / "report.txt"
+    with predictability_file.open("w") as fj:
+        print(f"EYE TRACKING SCORE: {sum(report_values) / len(report_values):.2f}", file=fj)
 
     results = []
 
@@ -157,7 +164,14 @@ if __name__ == "__main__":
             "Change in AIC from baseline": aic_model-aic_baseline,
         })
 
+        if "self" in dv:
+            report_values = ((R2_model-R2_baseline)/(1-R2_baseline)) * 100
+
     predictability_file = args.output_dir / "predictive_power_spillover.jsonl"
     with predictability_file.open("w") as fj:
         for res in results:
             print(json.dumps(res), file=fj)
+
+    predictability_file = args.output_dir / "report.txt"
+    with predictability_file.open("a") as fj:
+        print(f"SELF-PACED READING SCORE: {report_values:.2f}", file=fj)
