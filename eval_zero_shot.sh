@@ -2,7 +2,7 @@
 
 MODEL_PATH=$1
 BACKEND=$2
-EVAL_DIR=${4:-"evaluation_data/full_eval"}
+EVAL_DIR=${3:-"evaluation_data/full_eval"}
 
 python -m evaluation_pipeline.sentence_zero_shot.run --model_path_or_name $MODEL_PATH --backend $BACKEND --task blimp --data_path "${EVAL_DIR}/blimp_filtered" --save_predictions
 python -m evaluation_pipeline.sentence_zero_shot.run --model_path_or_name $MODEL_PATH --backend $BACKEND --task blimp --data_path "${EVAL_DIR}/supplement" --save_predictions
