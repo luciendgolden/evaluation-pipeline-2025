@@ -141,7 +141,7 @@ For the multimodal tracks, we release [Flamingo](https://proceedings.neurips.cc/
 Here are scores for each model on each evaluation task. Each task score is an unweighted mean of each subtask score within that task. We also show macroaverages, which are simply means of each task score (i.e., means across a row of the table). NOTE: for GLUE, we average *accuracies* for all tasks except QQP and MRPC (where we use F1 scores). See end of README for more detailed score breakdowns.
 
 > [!Note]
-> The evaluations are run on the final model (the one trained for 10 epochs (100M words in Strict-small and 1B words in Strict and Interaction)).
+> The evaluations below are run on the final model (the one trained for 10 epochs (100M words in Strict-small and 1B words in Strict and Interaction)).
 
 **Strict-small Track (10M)**
 
@@ -202,7 +202,24 @@ Here, we show the performance of the Flamingo and GIT baselines on all text-only
 
 (*) Not directly comparable to other macroaverages, since DevBench scores without vision are not well-defined. These rows are more useful as comparison points for Winoground and VQA with and without visual signals.
 
-## Submission Format
+## Submission Requirements
+
+### Checkpoints
+
+We require to provide the following checkpoints for all tracks:
+- The model checkpoint every 1M words for the first 10M words (total count not unique) trained on (1M, 2M, ..., 10M)
+- The model checkpoint every 10M words for the first 100M words (total count not unique) trained on (10M, 20M, ..., 100M)
+
+For all the tracks except strict-small:
+- The model checkpoint every 100M words for the first 1000M words (total count not unique) trained on (100M, 200M, ..., 1000M)
+
+For the submiting the checkpoints we encourage creating multiple branches in a HuggingFace repository containing each checkpoint (a brach for the 7M checkpoint could be called chck_7M). Checkout [this repository](https://huggingface.co/BabyLM-community/babylm-baseline-10m-gpt-bert-mixed) for an example.
+
+### Submission Evaluation
+
+This year we require both the evaluation of the final model, on a set of full evaluation (which include the finetuning). And the evaluation of all the checkpoints mentioned above (or up until the one you trained, if for example you only train for 20M words then we require: 1M, 2M, ..., 10M, 20M) on a set of fast tasks, that do not include finetuning and are a subsampled set of the full evaluations.
+
+### Submission Format
 > [!Note]
 > To Be Announced!
 
