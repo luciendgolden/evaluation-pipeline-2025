@@ -16,7 +16,7 @@ We also welcome pull requests!
 
 We have added a couple of new tasks to the text-only evaluation suite:
 - **Derivational Morphology Reveals Analogical Generalization in Large Language Models** [(Hofmann et al., 2024)](https://arxiv.org/abs/2411.07990) - *Tests morphological generalization in LMs through an adjective nominalization task.*
-- **Entity Tracking in Language Models** [(Kim & Schuster, 2023)](https://aclanthology.org/2023.acl-long.213/) - *Tests entity state tracking in LMs. Note: We have changed the evaluation of this task to evaluate LMs' ability to assign the highest probability to the correct continuation (akin to BLiMP and EWoK) rather than generate the correct completion itself as was originally done, to allow for simpler, zero-shot evaluation. *
+- **Entity Tracking in Language Models** [(Kim & Schuster, 2023)](https://aclanthology.org/2023.acl-long.213/) - *Tests entity state tracking in LMs. Note: We have changed the evaluation of this task to evaluate LMs' ability to assign the highest probability to the correct continuation (akin to BLiMP and EWoK) rather than generate the correct completion itself as was originally done, to allow for simpler, zero-shot evaluation.*
 - **Cloze probability, predictability ratings, and computational estimates for 205 English sentences, aligned with existing EEG and reading time data** [(De Varda et al., 2023)](https://link.springer.com/article/10.3758/s13428-023-02261-8) - *Connects LM predictions to human reading times, allowing us to assess to what extent LM processing is aligned with human language processing.*
 
 From last years iteration we are still including BLiMP, EWoK, and GLUE for evaluation.
