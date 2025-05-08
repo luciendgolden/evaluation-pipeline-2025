@@ -6,7 +6,7 @@
 
 This code provides the backend for the BabyLM Challenge's evaluation pipeline. This year we decided to implement it from scratch. It currently supports 3 different evaluation types: fine-tuning (sequence), sentence-level zero-shot logits calculations, and word level logits calculations (although the last one is implemented for a specific task).
 
-A new addition this year is that we have two evaluation types: *fast* evaluation uses a smaller set of evaluation samples, and allows for quick testing of your models, and *full* evaluation can be ran on your final model.
+A new addition this year is that we have two evaluation types: **fast** evaluation uses a smaller set of evaluation samples, allows for quick testing of your models, and is what you will report performance on for the intermediate model checkpoints. The **full** evaluation should be ran on your final model.
 
 If you have questions about or suggestions for this code, please open an issue and consider [joining our Slack](https://join.slack.com/t/babylmchallenge/shared_invite/zt-2gqgqaumu-5ebxxADuT561aT_ooKbT1Q). Join the `#evaluation` channel, which is dedicated to support for use of this repository.
 
@@ -64,8 +64,6 @@ Furthermore, the EWoK data requires agreeing to the terms & conditions on the Hu
 
 On both pages, make sure you're logged in to your HuggingFace account, and request approval. Then, in your terminal, log in to your account using `huggingface-cli login`, and enter your HuggingFace login token.
 
-For DevBench data, run `devbench/download_data.sh` from the root directory of this repository.
-
 For EWoK data, run `python -m evaluation_pipeline.ewok.dl_and_filter` from the root directory of this repository.
 
 For the fast EWoK data, we provide a password-protected ZIP file called `ewok_fast.zip`.
@@ -84,7 +82,7 @@ Use the following shell script to evaluate on the full zero-shot evaluations:
 
 Use the following shell script to evaluate on the fast zero-shot evaluations:
 ```bash
-./eval_zero_shot.sh <path_to_model> <revision_name> <architecture (causal/mntp/mlm)> <eval_dir (optional, default:evaluation_data/fast_eval)>
+./eval_zero_shot_fast.sh <path_to_model> <revision_name> <architecture (causal/mntp/mlm)> <eval_dir (optional, default:evaluation_data/fast_eval)>
 ```
 
 > [!Note]
