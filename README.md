@@ -12,6 +12,15 @@ If you have questions about or suggestions for this code, please open an issue a
 
 We also welcome pull requests!
 
+## New Tasks
+
+We are adding a couple new tasks to the text-only evaluation suite:
+- **Derivational Morphology Reveals Analogical Generalization in Large Language Models** [(Hofmann et al., 2024)](https://arxiv.org/abs/2411.07990) - *Tests morphological generalization in LMs through an adjective nominalization task.*
+- **Entity Tracking in Language Models** [(Kim & Schuster, 2023)](https://aclanthology.org/2023.acl-long.213/) - *Tests entity tracking in dialogue conversations in LMs.*
+- **Cloze probability, predictability ratings, and computational estimates for 205 English sentences, aligned with existing EEG and reading time data** [(De Varda et al., 2023)](https://link.springer.com/article/10.3758/s13428-023-02261-8) - *Connects LM predictions to human reading times, allowing us to assess to what extent LM processing is aligned with human language processing.*
+
+From last years iteration we are still including BLiMP, EWoK, and GLUE for evaluation.
+
 ## Install
 
 > [!Note]
