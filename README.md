@@ -4,9 +4,9 @@
 
 ## Overview
 
-This code provides the backend for the BabyLM Challenge's evaluation pipeline. This year we decided to implement it from scratch. It currently supports 3 different evaluation types: fine-tuning (sequence), sentence-level zero-shot logits calculations, and word level logits calculations (although the last one is implemented for a specific task).
+This code provides the backend for the BabyLM Challenge's evaluation pipeline. This year we decided to implement it from scratch. It currently supports 3 different evaluation types: fine-tuning (sequence), sentence-level zero-shot logit calculations, and word level logit calculations (although the last one is implemented for a specific task).
 
-A new addition this year is that we have two evaluation types: **fast** evaluation uses a smaller set of evaluation samples, allows for quick testing of your models, and is what you will report performance on for the intermediate model checkpoints. The **full** evaluation should be ran on your final model.
+A new addition this year is that we have two evaluation types: **fast** evaluation uses a smaller set of evaluation samples, allows for quick testing of your models, and is what you will report performance on for the intermediate model checkpoints. The **full** evaluation should be run on your final model.
 
 If you have questions about or suggestions for this code, please open an issue and consider [joining our Slack](https://join.slack.com/t/babylmchallenge/shared_invite/zt-2gqgqaumu-5ebxxADuT561aT_ooKbT1Q). Join the `#evaluation` channel, which is dedicated to support for use of this repository.
 
@@ -14,9 +14,9 @@ We also welcome pull requests!
 
 ## New Tasks
 
-We are adding a couple new tasks to the text-only evaluation suite:
+We have added a couple of new tasks to the text-only evaluation suite:
 - **Derivational Morphology Reveals Analogical Generalization in Large Language Models** [(Hofmann et al., 2024)](https://arxiv.org/abs/2411.07990) - *Tests morphological generalization in LMs through an adjective nominalization task.*
-- **Entity Tracking in Language Models** [(Kim & Schuster, 2023)](https://aclanthology.org/2023.acl-long.213/) - *Tests entity tracking in dialogue conversations in LMs.*
+- **Entity Tracking in Language Models** [(Kim & Schuster, 2023)](https://aclanthology.org/2023.acl-long.213/) - *Tests entity state tracking in LMs. Note: We have changed the evaluation of this task to evaluate LMs' ability to assign the highest probability to the correct continuation (akin to BLiMP and EWoK) rather than generate the correct completion itself as was originally done, to allow for simpler, zero-shot evaluation. *
 - **Cloze probability, predictability ratings, and computational estimates for 205 English sentences, aligned with existing EEG and reading time data** [(De Varda et al., 2023)](https://link.springer.com/article/10.3758/s13428-023-02261-8) - *Connects LM predictions to human reading times, allowing us to assess to what extent LM processing is aligned with human language processing.*
 
 From last years iteration we are still including BLiMP, EWoK, and GLUE for evaluation.
@@ -134,9 +134,11 @@ In addition, use the following command to evaluate on Winoground (where we use a
 ## Baselines
 The baseline models are available from the BabyLM Community huggingface page here: https://huggingface.co/BabyLM-community .
 
-For the strict and strict-small tracks, we release [BabyLlama](https://aclanthology.org/2023.conll-babylm.24/) and [LTG-BERT](https://aclanthology.org/2023.conll-babylm.20/) baselines. These architectures were chosen because they were the winning methods from last year's challenge. Models containing `-100m` are for the strict track; those containing `-10m` are for strict-small.
+For the strict and strict-small tracks, we release the following baselines: [GPT-BERT](https://arxiv.org/pdf/2410.24159), the winning submission from the 2024 iteration, and GPT-2 Small as a purely autoregressive baseline. Models containing `-100m` are for the strict track; those containing `-10m` are for strict-small.
 
 For the multimodal tracks, we release [Flamingo](https://proceedings.neurips.cc/paper_files/paper/2022/file/960a172bc7fbf0177ccccbb411a7d800-Paper-Conference.pdf) and [GIT](https://openreview.net/pdf?id=b4tMhpN0JC) baselines.
+
+For the interaction track, we release two baselines: An "RLHF" baseline, where a model pre-trained on the BabyLM corpus is further finetuned via [PPO](https://arxiv.org/pdf/1707.06347) to maximize a scalar reward mimicking caregiver responses, and a "Preference Optimization" baseline, where a model is optimized via [SimPO](https://arxiv.org/pdf/2405.14734) to prefer teacher corrections over its own generated outputs. More details are available in Section 4.5 of the [call for papers](https://arxiv.org/pdf/2502.10645?).
 
 Here are scores for each model on each evaluation task. Each task score is an unweighted mean of each subtask score within that task. We also show macroaverages, which are simply means of each task score (i.e., means across a row of the table). NOTE: for GLUE, we average *accuracies* for all tasks except QQP and MRPC (where we use F1 scores). See end of README for more detailed score breakdowns.
 
@@ -152,6 +154,7 @@ Here are scores for each model on each evaluation task. Each task score is an un
 |GPT-BERT (Causal-focus) | **71.66** | **63.21** | 49.49 | **9.89** | **3.45** | **33.96** | 43.00 |
 |GPT-BERT (Mixed) | 69.62 | 61.56 | **50.23** | 9.50 | 3.37 | 22.27 | 45.00 |
 |GPT-BERT (Masked-focus) | 65.22 | 59.49 | 49.47 | 9.52 | 3.44 | 30.60 | **68.00** |
+|GPT-2 Small | 67.29 | 59.09 | 49.80 | ADD | ADD | 18.92 | 39.00 |
 
 *MNTP/MLM*
 
@@ -171,6 +174,7 @@ Here are scores for each model on each evaluation task. Each task score is an un
 |GPT-BERT (Causal-focus) | **79.29** | **70.42** | **52.32** | 8.36 | 3.02 | | 43.5 |
 |GPT-BERT (Mixed) | 78.37 | 69.23 | 51.79 | 8.74 | **3.59** | | 39.5 |
 |GPT-BERT (Masked-focus) | 74.56 | 63.63 | 51.57 | **8.80** | 3.30 | | **59.00** |
+|GPT-2 Small | 75.07 | 64.96 | 51.22 | ADD | ADD | 30.11 | 42.5 |
 
 *MNTP/MLM*
 
@@ -184,6 +188,7 @@ Here are scores for each model on each evaluation task. Each task score is an un
 **Interaction Track**
 
 | Model | BLiMP | BLiMP Supplement | EWoK | Reading (Eye Tracking) | Reading (Self-Paced Reading Time) | Entity Tracking | WUGs | GLUE | *Macroaverage* |
+|Preference Optimization | 71.91 | 64.85 | 52.44 | ADD | ADD | 27.71 | 38.5 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 **Multimodal Track**
