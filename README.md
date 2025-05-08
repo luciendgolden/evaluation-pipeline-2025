@@ -6,6 +6,8 @@
 
 This code provides the backend for the BabyLM Challenge's evaluation pipeline. This year we decided to implement it from scratch. It currently supports 3 different evaluation types: fine-tuning (sequence), sentence-level zero-shot logits calculations, and word level logits calculations (although the last one is implemented for a specific task).
 
+A new addition this year is that we have two evaluation types: *fast* evaluation uses a smaller set of evaluation samples, and allows for quick testing of your models, and *full* evaluation can be ran on your final model.
+
 If you have questions about or suggestions for this code, please open an issue and consider [joining our Slack](https://join.slack.com/t/babylmchallenge/shared_invite/zt-2gqgqaumu-5ebxxADuT561aT_ooKbT1Q). Join the `#evaluation` channel, which is dedicated to support for use of this repository.
 
 We also welcome pull requests!
@@ -15,7 +17,7 @@ We also welcome pull requests!
 > [!Note]
 > The package is currently not installable given that it is a first version. Instead we recommend installing the packages needed and using it as a python module, i.e. to run a part of the pipeline (for example finetuning) you would to do: `python -m evaluation_pipeline.finetune.run ...` from the root folder (the folder that contains the evaluation_pipeline folder).
 
-To be able to use the pipeline you need to install the requirements.txt packages.
+To be able to use the pipeline you need to install the `requirements.txt` packages.
 
 > [!Warning]
 > These packages were installed using Python 3.13, in case some of the packages are not compatible with your Python version (either because the version is too recent or is not supported). In that case, you could either update your Python version or pip/conda install the following packages: `transformers`, `torch`, `scikit-learn`, `numpy`, `pandas`, `statsmodels`, `datasets`, and `nltk`.
@@ -54,8 +56,10 @@ evaluation_pipeline
 
 Download the `evaluation_data` folder in [this OSF directory](https://osf.io/ryjfm/). Place it in the root directory of this repository.
 
-Due to large file sizes and license restrictions, we do not provide images in the OSF directory. Instead, we link to HuggingFace datasets, two of which require approval (which is immediate). Go to these URLs:
+Due to large file sizes and license restrictions, we do not provide images in the OSF directory of the evaluation tasks for the multimodal track. Instead, we link to HuggingFace datasets, two of which require approval (which is immediate). Go to this URL to download this dataset:
 - [Winoground](https://huggingface.co/datasets/facebook/winoground)
+
+Furthermore, the EWoK data requires agreeing to the terms & conditions on the HuggingFace Hub, which can be agreed to here:
 - [EWoK](https://huggingface.co/datasets/ewok-core/ewok-core-1.0)
 
 On both pages, make sure you're logged in to your HuggingFace account, and request approval. Then, in your terminal, log in to your account using `huggingface-cli login`, and enter your HuggingFace login token.
