@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from typing import TYPE_CHECKING, Any
 from transformers import AutoModel, AutoConfig
-from transformers.modeling_outputs import BaseModelOutput
+from transformers.modeling_outputs import ModelOutput
 
 if TYPE_CHECKING:
     from argparse import Namespace
@@ -101,7 +101,7 @@ class ModelForSequenceClassification(nn.Module):
         output_transformer: Any = self.transformer(input_data, attention_mask)
         if type(output_transformer) is tuple:
             encoding: torch.Tensor = output_transformer[0]
-        elif type(output_transformer) is BaseModelOutput:
+        elif isinstance(output_transformer, ModelOutput):
             if hasattr(output_transformer, "logits"):
                 encoding = output_transformer.logits
             elif hasattr(output_transformer, "last_hidden_state"):
