@@ -143,6 +143,7 @@ For the multimodal tracks, we release [Flamingo](https://proceedings.neurips.cc/
 
 For the interaction track, we release two baselines: An "RLHF" baseline, where a model pre-trained on the BabyLM corpus is further finetuned via [PPO](https://arxiv.org/pdf/1707.06347) to maximize a scalar reward mimicking caregiver responses, and a "Preference Optimization" baseline, where a model is optimized via [SimPO](https://arxiv.org/pdf/2405.14734) to prefer teacher corrections over its own generated outputs. More details are available in Section 4.5 of the [call for papers](https://arxiv.org/pdf/2502.10645?).
 
+<!---
 Here are scores for each model on each evaluation task. Each task score is an unweighted mean of each subtask score within that task. We also show macroaverages, which are simply means of each task score (i.e., means across a row of the table). NOTE: for GLUE, we average *accuracies* for all tasks except QQP and MRPC (where we use F1 scores). See end of README for more detailed score breakdowns.
 
 > [!Note]
@@ -209,6 +210,7 @@ Here, we show the performance of the Flamingo and GIT baselines on all text-only
 | GIT (no vision) | 50.0 | 48.4 | - | *49.2(\*)* |
 
 (*) Not directly comparable to other macroaverages, since DevBench scores without vision are not well-defined. These rows are more useful as comparison points for Winoground and VQA with and without visual signals.
+--->
 
 ## Submission Requirements
 
@@ -286,6 +288,7 @@ Please cite both of the following papers if you use this repository in your work
 }
 ```
 
+<!---
 ## Detailed Score Breakdown
 
 **Strict-small Track (10M)**
@@ -513,13 +516,13 @@ Please cite both of the following papers if you use this repository in your work
 ---
 **Multimodal Track**
 
-<!---
+
 *GLUE (Default: Acc.)*
 | Model | BoolQ | CoLA (MCC) | MNLI | MNLI-mm | MRPC (F1) | MultiRC | QNLI | QQP (F1) | RTE | SST-2 | WSC | *Macroaverage* |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Flamingo | 69.1 | 36.7 | 75.8 | 76.4 | 84.2 | 60.5 | 83.8 | 85.1 | 60.4 | 90.4 | 42.3 | *69.5* |
 | GIT | 67.0 | 0.0 | 75.2 | 74.5 | 82.2 | 58.6 | 81.9 | 84.7 | 62.6 | 88.8 | 45.3 | *65.5* |
--->
+
 
 *GLUE (Default: Acc.)*
 | Model    | BoolQ | MNLI | MRPC (F1) | MultiRC | QQP (F1) | RTE  | WSC  | *Macroaverage* |
@@ -558,4 +561,4 @@ Winoground and VQA do not contain subtasks, so scores for these can be found abo
 
 ## Bibliography
 
-
+--->
