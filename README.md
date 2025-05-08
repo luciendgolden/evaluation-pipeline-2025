@@ -265,26 +265,208 @@ Please cite both of the following papers if you use this repository in your work
 
 **Strict-small Track (10M)**
 
-*GLUE (Default: Acc.)*
-| Model | BoolQ | CoLA (MCC) | MNLI | MNLI-mm | MRPC (F1) | MultiRC | QNLI | QQP (F1) | RTE | SST-2 | WSC | *Macroaverage* |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+*Causal*
 
+*GLUE (Default: Acc.)*
+| Model | BoolQ | MNLI | MRPC (F1) | MultiRC | QQP (F1) | RTE | WSC | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*BLiMP (Acc.)*
+| Model | Ellipsis | Binding | Quantifiers | Argument Structure | Subject Verb Agreement | Anaphor Agreement | Filler Gap Dependency |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*BLiMP Contd. (Acc.)*
+| Model | S-Selection | Determiner Noun Agreement | NPI Licensing | Island Effects | Control Raising | Irregular Forms | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
 
 *BLiMP Supplement (Acc.)*
 | Model | Hypernym | QA Congruence (easy) | QA Congruence (tricky) | Subj.-Aux. Inversion | Turn Taking | *Macroaverage* |
 | --- | --- | --- | --- | --- | --- | --- |
-
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
 
 *EWoK (Acc.)*
 | Model | Agent Properties | Material Dynamics | Material Properties | Physical Dynamics | Physical Interactions | Physical Relations | Quantitative Properties | Social Interactions | Social Properties | Social Relations | Spatial Relations | *Macroaverage* |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
 
+*Entity Tracking (Acc.)*
+| Model | Regular | Ambiguous Reference | Move Contents | *Macroaverage* |
+| --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+
+---
+
+*MNTP/MLM*
+
+*GLUE (Default: Acc.)*
+| Model | BoolQ | MNLI | MRPC (F1) | MultiRC | QQP (F1) | RTE | WSC | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*BLiMP (Acc.)*
+| Model | Ellipsis | Binding | Quantifiers | Argument Structure | Subject Verb Agreement | Anaphor Agreement | Filler Gap Dependency |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*BLiMP Contd. (Acc.)*
+| Model | S-Selection | Determiner Noun Agreement | NPI Licensing | Island Effects | Control Raising | Irregular Forms | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*BLiMP Supplement (Acc.)*
+| Model | Hypernym | QA Congruence (easy) | QA Congruence (tricky) | Subj.-Aux. Inversion | Turn Taking | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*EWoK (Acc.)*
+| Model | Agent Properties | Material Dynamics | Material Properties | Physical Dynamics | Physical Interactions | Physical Relations | Quantitative Properties | Social Interactions | Social Properties | Social Relations | Spatial Relations | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*Entity Tracking (Acc.)*
+| Model | Regular | Ambiguous Reference | Move Contents | *Macroaverage* |
+| --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+---
 ---
 **Strict Track (100M)**
 
+*Causal*
+
 *GLUE (Default: Acc.)*
-| Model | BoolQ | CoLA (MCC) | MNLI | MNLI-mm | MRPC (F1) | MultiRC | QNLI | QQP (F1) | RTE | SST-2 | WSC | *Macroaverage* |
+| Model | BoolQ | MNLI | MRPC (F1) | MultiRC | QQP (F1) | RTE | WSC | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*BLiMP (Acc.)*
+| Model | Ellipsis | Binding | Quantifiers | Argument Structure | Subject Verb Agreement | Anaphor Agreement | Filler Gap Dependency |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*BLiMP Contd. (Acc.)*
+| Model | S-Selection | Determiner Noun Agreement | NPI Licensing | Island Effects | Control Raising | Irregular Forms | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*BLiMP Supplement (Acc.)*
+| Model | Hypernym | QA Congruence (easy) | QA Congruence (tricky) | Subj.-Aux. Inversion | Turn Taking | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*EWoK (Acc.)*
+| Model | Agent Properties | Material Dynamics | Material Properties | Physical Dynamics | Physical Interactions | Physical Relations | Quantitative Properties | Social Interactions | Social Properties | Social Relations | Spatial Relations | *Macroaverage* |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*Entity Tracking (Acc.)*
+| Model | Regular | Ambiguous Reference | Move Contents | *Macroaverage* |
+| --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+---
+
+*MNTP/MLM*
+
+*GLUE (Default: Acc.)*
+| Model | BoolQ | MNLI | MRPC (F1) | MultiRC | QQP (F1) | RTE | WSC | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*BLiMP (Acc.)*
+| Model | Ellipsis | Binding | Quantifiers | Argument Structure | Subject Verb Agreement | Anaphor Agreement | Filler Gap Dependency |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*BLiMP Contd. (Acc.)*
+| Model | S-Selection | Determiner Noun Agreement | NPI Licensing | Island Effects | Control Raising | Irregular Forms | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*BLiMP Supplement (Acc.)*
+| Model | Hypernym | QA Congruence (easy) | QA Congruence (tricky) | Subj.-Aux. Inversion | Turn Taking | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*EWoK (Acc.)*
+| Model | Agent Properties | Material Dynamics | Material Properties | Physical Dynamics | Physical Interactions | Physical Relations | Quantitative Properties | Social Interactions | Social Properties | Social Relations | Spatial Relations | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+*Entity Tracking (Acc.)*
+| Model | Regular | Ambiguous Reference | Move Contents | *Macroaverage* |
+| --- | --- | --- | --- | --- |
+|GPT-BERT (Causal-focus) | 
+|GPT-BERT (Mixed) | 
+|GPT-BERT (Masked-focus) |
+
+---
+---
+**Interaction Track**
+
+*GLUE (Default: Acc.)*
+| Model | BoolQ | MNLI | MRPC (F1) | MultiRC | QQP (F1) | RTE | WSC | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+
+*BLiMP (Acc.)*
+| Model | Ellipsis | Binding | Quantifiers | Argument Structure | Subject Verb Agreement | Anaphor Agreement | Filler Gap Dependency |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+
+
+*BLiMP Contd. (Acc.)*
+| Model | S-Selection | Determiner Noun Agreement | NPI Licensing | Island Effects | Control Raising | Irregular Forms | *Macroaverage* |
+| --- | --- | --- | --- | --- | --- | --- | --- |
 
 
 *BLiMP Supplement (Acc.)*
@@ -296,6 +478,13 @@ Please cite both of the following papers if you use this repository in your work
 | Model | Agent Properties | Material Dynamics | Material Properties | Physical Dynamics | Physical Interactions | Physical Relations | Quantitative Properties | Social Interactions | Social Properties | Social Relations | Spatial Relations | *Macroaverage* |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
+
+*Entity Tracking (Acc.)*
+| Model | Regular | Ambiguous Reference | Move Contents | *Macroaverage* |
+| --- | --- | --- | --- | --- |
+
+
+---
 ---
 **Multimodal Track**
 
