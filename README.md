@@ -149,17 +149,17 @@ Here are scores for each model on each evaluation task. Each task score is an un
 
 | Model | BLiMP | BLiMP Supplement | EWoK | Reading (Eye Tracking) | Reading (Self-Paced Reading Time) | Entity Tracking | WUGs | GLUE | *Macroaverage* |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-|GPT-BERT (Causal-focus) | **71.66** | **63.21** | 49.49 | **9.89** | **3.45** | | 43.00 |
-|GPT-BERT (Mixed) | 69.62 | 61.56 | **50.23** | 9.50 | 3.37 | | 45.00 |
-|GPT-BERT (Masked-focus) | 65.22 | 59.49 | 49.47 | 9.52 | 3.44 | | **68.00** |
+|GPT-BERT (Causal-focus) | **71.66** | **63.21** | 49.49 | **9.89** | **3.45** | **33.96** | 43.00 |
+|GPT-BERT (Mixed) | 69.62 | 61.56 | **50.23** | 9.50 | 3.37 | 22.27 | 45.00 |
+|GPT-BERT (Masked-focus) | 65.22 | 59.49 | 49.47 | 9.52 | 3.44 | 30.60 | **68.00** |
 
 *MNTP/MLM*
 
 | Model | BLiMP | BLiMP Supplement | EWoK | Reading (Eye Tracking) | Reading (Self-Paced Reading Time) | Entity Tracking | WUGs | GLUE | *Macroaverage* |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-|GPT-BERT (Causal-focus) | 69.07 | **64.33** | 49.62 | 9.47 | **3.48** | | 43.00 |
-|GPT-BERT (Mixed) | **71.29** | 63.30 | 49.93 | **9.78** | 3.33 | | 16.00 |
-|GPT-BERT (Masked-focus) | 70.36 | 63.71 | **49.95** | 9.40 | 3.37 | | **57.5** |
+|GPT-BERT (Causal-focus) | 69.07 | **64.33** | 49.62 | 9.47 | **3.48** | 39.17 | 43.00 |
+|GPT-BERT (Mixed) | **71.29** | 63.30 | 49.93 | **9.78** | 3.33 | 39.95 | 16.00 |
+|GPT-BERT (Masked-focus) | 70.36 | 63.71 | **49.95** | 9.40 | 3.37 | **40.02** | **57.5** |
 
 
 **Strict Track (100M)**
