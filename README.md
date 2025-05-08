@@ -108,6 +108,9 @@ Like last year, we provide a script to support fine-tuning on all tasks:
 This will fine-tune your model on all (Super)GLUE tasks.
 
 > [!Note]
+> To make finetuning evaluations more efficient, this year we randomly subsampled MNLI and QQP to 10k training samples. We found that 10k training samples for these datasets is sufficient for minimizing variance due to randomness. We also removed CoLA, SST2, MNLI-mm, and QNLI because they are highly correlated with other datasets.
+
+> [!Note]
 > The hyperparameters are shared through all tasks, if you want to have different ones for every task, you will either need to edit the file or run the python command found in the file from the terminal.
 
 > [!Note]
@@ -510,11 +513,20 @@ Please cite both of the following papers if you use this repository in your work
 ---
 **Multimodal Track**
 
+<!---
 *GLUE (Default: Acc.)*
 | Model | BoolQ | CoLA (MCC) | MNLI | MNLI-mm | MRPC (F1) | MultiRC | QNLI | QQP (F1) | RTE | SST-2 | WSC | *Macroaverage* |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Flamingo | 69.1 | 36.7 | 75.8 | 76.4 | 84.2 | 60.5 | 83.8 | 85.1 | 60.4 | 90.4 | 42.3 | *69.5* |
 | GIT | 67.0 | 0.0 | 75.2 | 74.5 | 82.2 | 58.6 | 81.9 | 84.7 | 62.6 | 88.8 | 45.3 | *65.5* |
+-->
+
+*GLUE (Default: Acc.)*
+| Model    | BoolQ | MNLI | MRPC (F1) | MultiRC | QQP (F1) | RTE  | WSC  | *Macroaverage* |
+| :------- | :---- | :--- | :-------- | :------ | :------- | :--- | :--- | :--- |
+| Flamingo | 69.1  | 75.8 | 84.2      | 60.5    | 85.1     | 60.4 | 42.3 | 68.2 |
+| GIT      | 67.0  | 75.2 | 82.2      | 58.6    | 84.7     | 62.6 | 45.3 | 67.9 |
+
 
 *BLiMP Supplement (Acc.)*
 | Model | Hypernym | QA Congruence (easy) | QA Congruence (tricky) | Subj.-Aux. Inversion | Turn Taking | *Macroaverage* |
