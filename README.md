@@ -188,8 +188,8 @@ Here are scores for each model on each evaluation task. Each task score is an un
 **Interaction Track**
 
 | Model | BLiMP | BLiMP Supplement | EWoK | Reading (Eye Tracking) | Reading (Self-Paced Reading Time) | Entity Tracking | WUGs | GLUE | *Macroaverage* |
-|Preference Optimization | 71.91 | 64.85 | 52.44 | ADD | ADD | 27.71 | 38.5 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|Preference Optimization | 71.91 | 64.85 | 52.44 | ADD | ADD | 27.71 | 38.5 |
 
 **Multimodal Track**
 
