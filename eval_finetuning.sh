@@ -57,7 +57,7 @@ python -m evaluation_pipeline.finetune.run \
     --train_data "evaluation_data/full_eval/glue_filtered/mnli.train.jsonl" \
     --valid_data "evaluation_data/full_eval/glue_filtered/mnli.valid.jsonl" \
     --predict_data "evaluation_data/full_eval/glue_filtered/mnli.valid.jsonl" \
-    --task "$task" \
+    --task mnli \
     --num_labels 3 \
     --batch_size $BSZ \
     --learning_rate $LR \
