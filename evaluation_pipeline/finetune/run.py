@@ -141,7 +141,7 @@ if __name__ == "__main__":
     trainer.train()
 
     if valid_dataloader is not None:
-        metrics: dict[str, float] = trainer.evaluate()
+        metrics: dict[str, float] = trainer.evaluate(evaluate_best_model=True)
         with (output_path / "results.txt").open("w") as file:
             file.write("\n".join([f"{key}: {value}" for key, value in metrics.items()]))
 

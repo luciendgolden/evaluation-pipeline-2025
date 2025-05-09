@@ -121,7 +121,7 @@ class Trainer():
         return global_step
 
     @torch.no_grad()
-    def evaluate(self: Trainer) -> dict[str, float]:
+    def evaluate(self: Trainer, evaluate_best_model: bool = False) -> dict[str, float]:
         """This function does an evaluation pass on the
         validation dataset.
 
@@ -132,7 +132,9 @@ class Trainer():
         """
         assert self.valid_dataloader is not None, "No valid dataset to run evaluation on!"
 
-        if self.ema_model is not None:
+        if hasattr(self, "best_model") and evaluate_best_model:
+            model: nn.Module = self.best_model
+        elif self.ema_model is not None:
             model = self.ema_model
         else:
             model = self.model
@@ -260,7 +262,7 @@ class Trainer():
                     update_best = False
                 elif self.ema_model is not None:
                     self.save_model(self.ema_model)
-                else:
+                elif not self.args.keep_best_model:
                     self.save_model(self.model)
 
     @torch.no_grad()
