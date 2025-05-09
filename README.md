@@ -71,6 +71,8 @@ Due to large file sizes and license restrictions, we do not provide images in th
 Furthermore, the EWoK data requires agreeing to the terms & conditions on the HuggingFace Hub, which can be agreed to here:
 - [EWoK](https://huggingface.co/datasets/ewok-core/ewok-core-1.0)
 
+For the EWoK fast dataset found in the [OSF](https://osf.io/ryjfm), the password to unzip the file is: BabyLM2025
+
 On both pages, make sure you're logged in to your HuggingFace account, and request approval. Then, in your terminal, log in to your account using `huggingface-cli login`, and enter your HuggingFace login token.
 
 For EWoK data, run `python -m evaluation_pipeline.ewok.dl_and_filter` from the root directory of this repository.
