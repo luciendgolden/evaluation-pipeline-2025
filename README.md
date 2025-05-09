@@ -61,6 +61,37 @@ evaluation_pipeline
     └── run.py
 ```
 
+## Results File Structure
+
+```
+results
+├── model_name1
+│   ├── main
+│   │   ├── finetune
+│   │   │   ├── boolq
+│   │   │   │   ├── predictions.jsonl
+│   │   │   │   └── results.txt
+│   │   │   ├── mnli
+│   │   │   └── ...
+│   │   └── zero_shot
+│   │       ├── causal
+│   │       │       ├── blimp
+│   │       │       │   ├── blimp_filtered
+│   │       │       │   │   ├── best_temperature_report.txt
+│   │       │       │   │   └── predictions.jsonl
+│   │       │       │   ├── supplement_filtered
+│   │       │       │   ├── blimp_fast
+│   │       │       │   └── ...
+│   │       │       ├── ewok
+│   │       │       └── ...
+│   │       └── ...
+│   ├── revision_name1
+│   └── revision_name2
+├── model_name2
+│   ├── ...
+└── ...
+```
+
 ## Data
 
 Download the `evaluation_data` folder in [this OSF directory](https://osf.io/ryjfm/). Place it in the root directory of this repository.
