@@ -116,6 +116,7 @@ This will fine-tune your model on all (Super)GLUE tasks.
 > [!Note]
 > There are more hyperparameters you can play with! Checkout the README in the finetune folder of the evaluation_pipeline for more information. In addition, you can edit also edit the classifier head.
 
+<!---
 Here are the hyperparameters used for fine-tuning for all tasks. Feel free to modify these, or to set task-specific hyperparameters:
 | Hyperparameter | Value |
 | -------------- | ----- |
@@ -123,6 +124,7 @@ Here are the hyperparameters used for fine-tuning for all tasks. Feel free to mo
 | Batch size | 32 |
 | Maximum epochs | 10 |
 | Seed | 42 |
+--->
 
 ### Multimodal evaluation
 
