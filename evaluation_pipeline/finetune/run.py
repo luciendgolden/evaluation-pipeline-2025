@@ -1,26 +1,17 @@
 from __future__ import annotations
 
 import torch
-import torch.nn as nn
 import argparse
-from transformers import AutoTokenizer
-from torch.utils.data import DataLoader
-from torch.optim import AdamW
-from functools import partial
 import json
 import pathlib
-import copy
 
-from evaluation_pipeline.finetune.dataset import Dataset, collate_function, PredictDataset, predict_collate_function
-from evaluation_pipeline.finetune.classifier_model import ModelForSequenceClassification
 from evaluation_pipeline.finetune.trainer import Trainer
-from evaluation_pipeline.finetune.utils import seed_everything, cosine_schedule_with_warmup
+from evaluation_pipeline.finetune.utils import seed_everything
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from argparse import Namespace
-    from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
 
 def _parse_arguments() -> argparse.Namespace:
@@ -67,23 +58,18 @@ def _parse_arguments() -> argparse.Namespace:
     parser.add_argument("--causal", default=False, action=argparse.BooleanOptionalAction, help="Whether to use causal masking")
     parser.add_argument("--take_final", default=False, action=argparse.BooleanOptionalAction, help="Whether to take the last token rather than the first one.")
 
+    # W&B parameters
+    parser.add_argument("--wandb", action=argparse.BooleanOptionalAction, default=False, help="Flag to activate W&B logging.")
+    parser.add_argument("--wandb_project", type=str, default="BabyLM Finetuning", help="The name of the project to log to. By default this is BabyLM Finetuning.")
+    parser.add_argument("--wandb_entity", type=str, default=None, help="The name of the user/organization on W&B to log to.")
+    parser.add_argument("--exp_name", type=str, default=None, help="The name of the run as it appears on W&B. By default this is: 'model_name_task_seed'")
+
     args = parser.parse_args()
 
+    if args.wandb and args.exp_name is None:
+        args.exp_name = "_".join([args.model_name_or_path.stem, args.task, str(args.seed)])
+
     return args
-
-
-def _load_labeled_dataset(data_path: pathlib.Path, batch_size: int, tokenizer: PreTrainedTokenizerBase, shuffle: bool, drop_last: bool, args: Namespace) -> DataLoader:
-    dataset = Dataset(data_path, args.task)
-    dataloader = DataLoader(dataset, batch_size=batch_size, collate_fn=partial(collate_function, tokenizer, args.causal, args.sequence_length), shuffle=shuffle, drop_last=drop_last)
-
-    return dataloader
-
-
-def _load_predict_dataset(data_path: pathlib.Path, batch_size: int, tokenizer: PreTrainedTokenizerBase, args: Namespace):
-    dataset = PredictDataset(data_path, args.task)
-    dataloader = DataLoader(dataset, batch_size=batch_size, collate_fn=partial(predict_collate_function, tokenizer, args.causal, args.sequence_length))
-
-    return dataloader
 
 
 if __name__ == "__main__":
@@ -108,47 +94,21 @@ if __name__ == "__main__":
         args.save_path: pathlib.Path = args.save_dir / model_name / args.task
         args.save_path.mkdir(parents=True, exist_ok=True)
 
-    tokenizer: PreTrainedTokenizerBase = AutoTokenizer.from_pretrained(args.model_name_or_path, trust_remote_code=True, revision=args.revision_name)
-
-    train_dataloader: DataLoader = _load_labeled_dataset(args.train_data, args.batch_size, tokenizer, True, True, args)
-
-    valid_dataloader: DataLoader | None = None
-    if args.valid_data is not None:
-        valid_dataloader: DataLoader = _load_labeled_dataset(args.valid_data, args.valid_batch_size, tokenizer, False, False, args)
-
-    predict_dataloader: DataLoader | None = None
-    if args.predict_data is not None:
-        predict_dataloader: DataLoader = _load_predict_dataset(args.predict_data, args.valid_batch_size, tokenizer, args)
-
-    model: nn.Module = ModelForSequenceClassification(args).to(device)
-    ema_model: nn.Module = copy.deepcopy(model)
-    for param in ema_model.parameters():
-        param.requires_grad = False
-
-    if args.optimizer in ["adamw", "adam"]:
-        optimizer: torch.optim.Optimizer = AdamW(model.parameters(), lr=args.learning_rate, betas=(args.beta1, args.beta2), eps=args.optimizer_eps, weight_decay=args.weight_decay, amsgrad=args.amsgrad)
-    else:
-        raise NotImplementedError(f"The optimizer {args.optimizer} is not implemented!")
-    total_steps: int = args.num_epochs * len(train_dataloader)
-    if args.scheduler == "cosine":
-        scheduler: torch.optim.lr_scheduler.LRScheduler | None = cosine_schedule_with_warmup(optimizer, int(args.warmup_proportion * total_steps), total_steps, 0.1)
-    elif args.scheduler == "none":
-        scheduler = None
-    else:
-        raise NotImplementedError(f"The scheduler {args.scheduler} is not implemented!")
-
-    trainer = Trainer(model, train_dataloader, args, optimizer, device, scheduler, ema_model, valid_dataloader, predict_dataloader)
+    trainer = Trainer(args, device)
     trainer.train()
 
-    if valid_dataloader is not None:
+    if trainer.valid_dataloader is not None:
         metrics: dict[str, float] = trainer.evaluate(evaluate_best_model=True)
         with (output_path / "results.txt").open("w") as file:
             file.write("\n".join([f"{key}: {value}" for key, value in metrics.items()]))
 
-    if predict_dataloader is not None:
+    if trainer.predict_dataloader is not None:
         preds: torch.Tensor = trainer.predict_classification()
         pred_dict: dict[str, dict[str, list[dict[str, str | float]]]] = {f"{args.task}": {"predictions": []}}
         for i, pred in enumerate(preds):
             pred_dict[f"{args.task}"]["predictions"].append({"id": f"{args.task}_{i}", "pred": int(pred)})
         with (output_path / "predictions.json").open("w") as file:
             json.dump(pred_dict, file)
+
+    if args.wandb:
+        trainer.wandb_run.finish()

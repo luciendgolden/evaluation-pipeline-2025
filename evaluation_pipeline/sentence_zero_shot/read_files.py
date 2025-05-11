@@ -6,7 +6,7 @@ import pathlib
 from typing import Any
 
 
-def read_files(data_path: pathlib.Path, task: str) -> list[dict[str, str]]:
+def read_files(data_path: pathlib.Path, task: str, full_sentence_scores: bool) -> list[dict[str, str]]:
     """Takes the path to a data directory and a task, reads the JSONL datafiles
     in the directory and returns a list of dictionaries containing all the
     information used by the evaluation.
@@ -27,12 +27,12 @@ def read_files(data_path: pathlib.Path, task: str) -> list[dict[str, str]]:
 
         with filename.open("r") as f:
             for line in f:
-                data.append(decode(line, filename, task))
+                data.append(decode(line, filename, task, full_sentence_scores))
 
     return data
 
 
-def decode(line: str, file_name: pathlib.Path, task: str) -> dict[str, str]:
+def decode(line: str, file_name: pathlib.Path, task: str, full_sentence_scores: bool) -> dict[str, str]:
     """This function takes a line of a JSONL file and returns a dictionary of terms to be used by the evaluation.
 
     Args:
@@ -49,7 +49,7 @@ def decode(line: str, file_name: pathlib.Path, task: str) -> dict[str, str]:
     if task == "blimp":
         data_dict = decode_blimp(raw_dict, file_name)
     elif task == "ewok":
-        data_dict = decode_ewok(raw_dict)
+        data_dict = decode_ewok(raw_dict, full_sentence_scores)
     elif task == "wug":
         data_dict = decode_wug_adj_nominalization(raw_dict)
     elif task == "entity_tracking":
@@ -94,7 +94,7 @@ def decode_blimp(raw_dict: dict[str, Any], file_name: pathlib.Path) -> dict[str,
     return pair
 
 
-def decode_ewok(raw_dict: dict[str, Any]) -> dict[str, str]:
+def decode_ewok(raw_dict: dict[str, Any], full_sentence_scores: bool) -> dict[str, str]:
     """This function takes a dictionary of a single datapoint of a EWoK datafile
     and returns a dictionary of terms to be used by the evaluation.
 
@@ -105,9 +105,13 @@ def decode_ewok(raw_dict: dict[str, Any]) -> dict[str, str]:
     Returns:
         dict[str, str]: A dictionary with values used for evaluation
     """
+    if full_sentence_scores:
+        completions = [" ".join([raw_dict["Context1"], raw_dict["Target1"]]), " ".join([raw_dict["Context1"], raw_dict["Target2"]])]
+    else:
+        completions = [raw_dict["Target1"], raw_dict["Target2"]]
     pair = {
         "sentences": [" ".join([raw_dict["Context1"], raw_dict["Target1"]]), " ".join([raw_dict["Context1"], raw_dict["Target2"]])],
-        "completions": [raw_dict["Target1"], raw_dict["Target2"]],
+        "completions": completions,
         "label": 0,
         "UID": raw_dict["Domain"],
         "context_type": raw_dict["ContextType"],

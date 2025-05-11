@@ -105,48 +105,48 @@ class Dataset(torch.utils.data.Dataset):
 
         return text, label
 
+    @staticmethod
+    def collate_function(tokenizer: PreTrainedTokenizerBase, causal: bool, max_length: int, data: list[tuple[str, str] | int | str]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """This functions tokenizes, creates a attention_mask and
+        collates a batch of texts/pairs of texts.
 
-def collate_function(tokenizer: PreTrainedTokenizerBase, causal: bool, max_length: int, data: list[tuple[str, str] | int | str]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    """This functions tokenizes, creates a attention_mask and
-    collates a batch of texts/pairs of texts.
+        Args:
+            tokenizer(PreTrainedTokenizerBase): The tokenizer
+                corresponding to the model to finetune.
+            causal(bool): Whether or not the model expects causal
+                attention masking.
+            max_length(int): The maximum sequence length before the
+                input is truncated.
+            data(list[tuple[str, str] | int | str]): A list
+                containing a batch of texts/pair of texts and
+                labels.
 
-    Args:
-        tokenizer(PreTrainedTokenizerBase): The tokenizer
-            corresponding to the model to finetune.
-        causal(bool): Whether or not the model expects causal
-            attention masking.
-        max_length(int): The maximum sequence length before the
-            input is truncated.
-        data(list[tuple[str, str] | int | str]): A list
-            containing a batch of texts/pair of texts and
-            labels.
+        Returns:
+            torch.Tensor: A tensor of the tokenized inputs.
+                Shape: :math:`(B, S)`
+            torch.Tensor: A tensor of 1s and 0s representing the
+                tokens to attend to.
+                Shape: :math:`(B, S)` or :math:`(B, S, S)`
+            torch.Tensor: A tensor with the correct label for
+                each input.
+                Shape: :math:`(B)`
+        """
+        texts = []
+        labels = []
 
-    Returns:
-        torch.Tensor: A tensor of the tokenized inputs.
-            Shape: :math:`(B, S)`
-        torch.Tensor: A tensor of 1s and 0s representing the
-            tokens to attend to.
-            Shape: :math:`(B, S)` or :math:`(B, S, S)`
-        torch.Tensor: A tensor with the correct label for
-            each input.
-            Shape: :math:`(B)`
-    """
-    texts = []
-    labels = []
+        for text, label in data:
+            texts.append(text)
+            labels.append(label)
 
-    for text, label in data:
-        texts.append(text)
-        labels.append(label)
+        labels = torch.tensor(labels, dtype=torch.long)
+        encodings = tokenizer(texts, return_tensors="pt", padding=True, truncation=True, max_length=max_length)
 
-    labels = torch.tensor(labels, dtype=torch.long)
-    encodings = tokenizer(texts, return_tensors="pt", padding=True, truncation=True, max_length=max_length)
+        if causal:
+            attention_mask = encodings.attention_mask.unsqueeze(1).repeat(1, encodings.attention_mask.size(-1), 1).tril(diagonal=0)
+        else:
+            attention_mask = encodings.attention_mask
 
-    if causal:
-        attention_mask = encodings.attention_mask.unsqueeze(1).repeat(1, encodings.attention_mask.size(-1), 1).tril(diagonal=0)
-    else:
-        attention_mask = encodings.attention_mask
-
-    return encodings.input_ids, attention_mask, labels
+        return encodings.input_ids, attention_mask, labels
 
 
 class PredictDataset(torch.utils.data.Dataset):
@@ -241,38 +241,38 @@ class PredictDataset(torch.utils.data.Dataset):
 
         return text
 
+    @staticmethod
+    def collate_function(tokenizer: PreTrainedTokenizerBase, causal: bool, max_length: int, data: list[tuple[str, str] | int]) -> tuple[torch.Tensor, torch.Tensor]:
+        """This functions tokenizes, creates a attention_mask, and
+        collates a batch of texts/pairs of texts.
 
-def predict_collate_function(tokenizer: PreTrainedTokenizerBase, causal: bool, max_length: int, data: list[tuple[str, str] | int]) -> tuple[torch.Tensor, torch.Tensor]:
-    """This functions tokenizes, creates a attention_mask, and
-    collates a batch of texts/pairs of texts.
+        Args:
+            tokenizer(PreTrainedTokenizerBase): The tokenizer
+                corresponding to the model to finetune.
+            causal(bool): Whether or not the model expects causal
+                attention masking.
+            max_length(int): The maximum sequence length before the
+                input is truncated.
+            data(list[tuple[str, str] | int | str]): A list
+                containing a batch of texts/pair.
 
-    Args:
-        tokenizer(PreTrainedTokenizerBase): The tokenizer
-            corresponding to the model to finetune.
-        causal(bool): Whether or not the model expects causal
-            attention masking.
-        max_length(int): The maximum sequence length before the
-            input is truncated.
-        data(list[tuple[str, str] | int | str]): A list
-            containing a batch of texts/pair.
+        Returns:
+            torch.Tensor: A tensor of the tokenized inputs.
+                Shape: :math:`(B, S)`
+            torch.Tensor: A tensor of 1s and 0s representing the
+                tokens to attend to.
+                Shape: :math:`(B, S)` or :math:`(B, S, S)`
+        """
+        texts = []
 
-    Returns:
-        torch.Tensor: A tensor of the tokenized inputs.
-            Shape: :math:`(B, S)`
-        torch.Tensor: A tensor of 1s and 0s representing the
-            tokens to attend to.
-            Shape: :math:`(B, S)` or :math:`(B, S, S)`
-    """
-    texts = []
+        for text, label in data:
+            texts.append(text)
 
-    for text, label in data:
-        texts.append(text)
+        encodings = tokenizer(texts, return_tensors="pt", padding=True, truncation=True, max_length=max_length)
 
-    encodings = tokenizer(texts, return_tensors="pt", padding=True, truncation=True, max_length=max_length)
+        if causal:
+            attention_mask = encodings.attention_mask.unsqueeze(1).repeat(1, encodings.attention_mask.size(-1), 1).tril(diagonal=0)
+        else:
+            attention_mask = encodings.attention_mask
 
-    if causal:
-        attention_mask = encodings.attention_mask.unsqueeze(1).repeat(1, encodings.attention_mask.size(-1), 1).tril(diagonal=0)
-    else:
-        attention_mask = encodings.attention_mask
-
-    return encodings.input_ids, attention_mask
+        return encodings.input_ids, attention_mask

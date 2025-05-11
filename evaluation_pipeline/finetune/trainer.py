@@ -1,71 +1,126 @@
 from __future__ import annotations
 
-import torch
-from torch.nn import functional as F
 from tqdm import tqdm
 from typing import TYPE_CHECKING
 from sklearn.metrics import accuracy_score, f1_score, matthews_corrcoef
 import copy
+import pathlib
+from functools import partial
+
+import torch
+from torch.nn import functional as F
+from transformers import AutoTokenizer
+from torch.utils.data import DataLoader
+from torch.optim import AdamW
+
+from evaluation_pipeline.finetune.classifier_model import ModelForSequenceClassification
+from evaluation_pipeline.finetune.dataset import Dataset, PredictDataset
+from evaluation_pipeline.finetune.utils import cosine_schedule_with_warmup
 
 if TYPE_CHECKING:
     from argparse import Namespace
-    from torch.utils.data import DataLoader
     import torch.nn as nn
     from torch.optim import Optimizer
     from torch.optim.lr_scheduler import LRScheduler
+    from transformers.tokenization_utils_base import PreTrainedTokenizerBase
+
+import wandb
+
+
+def _load_labeled_dataset(data_path: pathlib.Path, batch_size: int, tokenizer: PreTrainedTokenizerBase, shuffle: bool, drop_last: bool, args: Namespace) -> DataLoader:
+    dataset = Dataset(data_path, args.task)
+    dataloader = DataLoader(dataset, batch_size=batch_size, collate_fn=partial(dataset.collate_function, tokenizer, args.causal, args.sequence_length), shuffle=shuffle, drop_last=drop_last)
+
+    return dataloader
+
+
+def _load_predict_dataset(data_path: pathlib.Path, batch_size: int, tokenizer: PreTrainedTokenizerBase, args: Namespace):
+    dataset = PredictDataset(data_path, args.task)
+    dataloader = DataLoader(dataset, batch_size=batch_size, collate_fn=partial(dataset.collate_function, tokenizer, args.causal, args.sequence_length))
+
+    return dataloader
 
 
 class Trainer():
 
-    def __init__(
-        self: Trainer,
-        model: nn.Module,
-        train_dataloader: DataLoader,
-        args: Namespace,
-        optimizer: Optimizer,
-        device: torch.device,
-        scheduler: LRScheduler | None = None,
-        ema_model: nn.Module | None = None,
-        valid_dataloader: DataLoader | None = None,
-        predict_dataloader: DataLoader | None = None
-    ) -> None:
+    def __init__(self: Trainer, args: Namespace, device: torch.device) -> None:
         """The Trainer class handles all the fine tuning,
         evaluation, and prediction of a given task for a
         given model.
 
         Args:
-            model(nn.Module): The model to finetune.
-            train_dataloader(DataLoader): The dataloader
-                of the train datasets.
             args(Namespace): The config information such
                 as hyperparameters, directories, verbose,
-                etc.
-            optimizer(Optimizer): The optimizer used
-                during training.
+                model_name, optimizer_name, etc.
             device(torch.device): The device to use for
                 finetuning.
-            scheduler(LRScheduler | None): The learning
-                rate scheduler to use during finetuning.
-            ema_model(nn.Module | None): The exponential
-                moving average model, if used.
-            valid_dataloader(DataLoader | None): The
-                dataloader of the the dataset to validate
-                on, without it, no validation will be done.
-            predict_dataloader(DataLoader | None): The
-                dataloader of the dataset to predict on,
-                without it, no prediction will be done.
         """
-        self.model: DataLoader = model
-        self.train_dataloader: DataLoader = train_dataloader
         self.args: Namespace = args
-        self.optimizer: Optimizer = optimizer
         self.device: torch.device = device
-        self.scheduler: LRScheduler = scheduler
-        self.ema_model: nn.Module = ema_model
-        self.valid_dataloader: DataLoader = valid_dataloader
-        self.predict_dataloader: DataLoader = predict_dataloader
+        self._init_model()
+        self.load_data()
+        self.global_step: int = 0
+        self.total_steps = len(self.train_dataloader) * self.args.num_epochs
+        self._init_opitmizer()
+        self._init_scheduler()
+        if args.wandb:
+            self._init_wandb()
 
-    def train_epoch(self: Trainer, total_steps: int, global_step: int = 0) -> int:
+    def _init_wandb(self: Trainer) -> None:
+        self.wandb_run = wandb.init(
+            name=self.args.exp_name,
+            project=self.args.wandb_project,
+            entity=self.args.wandb_entity,
+            config=self.args
+        )
+
+    def _init_model(self: Trainer) -> None:
+        self.model = ModelForSequenceClassification(self.args)
+        self.ema_model: nn.Module = copy.deepcopy(self.model)
+        for param in self.ema_model.parameters():
+            param.requires_grad = False
+
+        self.tokenizer: PreTrainedTokenizerBase = AutoTokenizer.from_pretrained(self.args.model_name_or_path)
+
+    def load_data(self: Trainer) -> None:
+        """This function loads the data and creates the
+        dataloader for each split of the data.
+        """
+        self.train_dataloader: DataLoader = _load_labeled_dataset(self.args.train_data, self.args.batch_size, self.tokenizer, True, True, self.args)
+
+        self.valid_dataloader: DataLoader | None = None
+        if self.args.valid_data is not None:
+            self.valid_dataloader: DataLoader = _load_labeled_dataset(self.args.valid_data, self.args.valid_batch_size, self.tokenizer, False, False, self.args)
+
+        self.predict_dataloader: DataLoader | None = None
+        if self.args.predict_data is not None:
+            self.predict_dataloader: DataLoader = _load_predict_dataset(self.args.predict_data, self.args.valid_batch_size, self.tokenizer, self.args)
+
+    def _init_opitmizer(self: Trainer) -> None:
+        if self.args.optimizer in ["adamw", "adam"]:
+            self.optimizer: Optimizer = AdamW(self.model.parameters(), lr=self.args.learning_rate, betas=(self.args.beta1, self.args.beta2), eps=self.args.optimizer_eps, weight_decay=self.args.weight_decay, amsgrad=self.args.amsgrad)
+        else:
+            raise NotImplementedError(f"The optimizer {self.args.optimizer} is not implemented!")
+
+    def _init_scheduler(self: Trainer) -> None:
+        if self.args.scheduler == "cosine":
+            self.scheduler: LRScheduler | None = cosine_schedule_with_warmup(self.optimizer, int(self.args.warmup_proportion * self.total_steps), self.total_steps, 0.1)
+        elif self.args.scheduler == "none":
+            self.scheduler = None
+        else:
+            raise NotImplementedError(f"The scheduler {self.args.scheduler} is not implemented!")
+
+    # TODO: Create getter and setter functions
+
+    def reset_trainer(self: Trainer) -> None:
+        """This function resets the Trainer. This means that it
+        resets the global step back to zero, and re-initializes
+        the optimizer and scheduler."""
+        self.global_step = 0
+        self._init_opitmizer()
+        self._init_scheduler()
+
+    def train_epoch(self: Trainer) -> None:
         """This function does a single epoch of the training.
 
         Args:
@@ -82,7 +137,7 @@ class Trainer():
         """
         self.model.train()
 
-        progress_bar = tqdm(initial=global_step, total=total_steps)
+        progress_bar = tqdm(initial=self.global_step, total=self.total_steps)
 
         for input_data, attention_mask, labels in self.train_dataloader:
             input_data = input_data.to(device=self.device)
@@ -107,6 +162,12 @@ class Trainer():
 
             metrics = self.calculate_metrics(logits, labels, self.args.metrics)
 
+            if hasattr(self, "wandb_run"):
+                self.wandb_run.log(
+                    {f"train/{metric}": value for metric, value in metrics.items()},
+                    step=self.global_step
+                )
+
             metrics_string = ", ".join([f"{key}: {value:.4f}" for key, value in metrics.items()])
 
             progress_bar.update()
@@ -114,11 +175,9 @@ class Trainer():
             if self.args.verbose:
                 progress_bar.set_postfix_str(metrics_string)
 
-            global_step += 1
+            self.global_step += 1
 
         progress_bar.close()
-
-        return global_step
 
     @torch.no_grad()
     def evaluate(self: Trainer, evaluate_best_model: bool = False) -> dict[str, float]:
@@ -161,6 +220,12 @@ class Trainer():
         logits = torch.cat(logits, dim=0)
 
         metrics = self.calculate_metrics(logits, labels, self.args.metrics)
+
+        if hasattr(self, "wandb_run"):
+            self.wandb_run.log(
+                {f"evaluate/{metric}": value for metric, value in metrics.items()},
+                step=self.global_step
+            )
 
         progress_bar.close()
 
@@ -235,14 +300,12 @@ class Trainer():
         hyperparameters, model, optimizer, scheduler specified
         to the constructor of the class.
         """
-        total_steps: int = self.args.num_epochs * len(self.train_dataloader)
-        step: int = 0
         best_score: float | None = None
         self.best_model: nn.Module | None = None
         update_best: bool = False
 
         for epoch in range(self.args.num_epochs):
-            step = self.train_epoch(total_steps, step)
+            self.train_epoch()
 
             if self.valid_dataloader is not None:
                 metrics: dict[str, float] = self.evaluate()

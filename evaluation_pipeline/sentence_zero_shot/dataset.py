@@ -24,7 +24,7 @@ class CompletionRankingDataset(Dataset):
                 self.tokenizer.pad_token_id = self.tokenizer.cls_token_id
 
         # Load and process the data
-        self.data = read_files(args.data_path, args.task)
+        self.data = read_files(args.data_path, args.task, args.full_sentence_scores)
 
     def __len__(self):
         return len(self.data)
