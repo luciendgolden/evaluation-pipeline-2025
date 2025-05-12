@@ -275,8 +275,7 @@ You can seamlessly visualize and analyze the results of your evaluation harness 
 
 ### Weights and Biases
 
-> [!Note]
-> Currently we do not support Weights and Biases support, this will be added in the near future.
+To run your finetuning code with Weights and Biases, you need to pass the `--wandb` flag and set at minimum the `--wandb_entity` to your W&B user/project. You can also set the `--wandb_project` to specify which project the run should be logged to. By default this is *BabyLM Finetuning*. You can also set the name of the run with the `exp_name` flag, by default this is *model_name_task_seed*.
 
 ### Support
 

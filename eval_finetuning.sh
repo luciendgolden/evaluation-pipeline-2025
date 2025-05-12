@@ -65,7 +65,7 @@ python -m evaluation_pipeline.finetune.run \
     --results_dir "results" \
     --save \
     --save_dir "models" \
-    --metrics accuracy \
+    --metrics accuracy f1 mcc \
     --metric_for_valid accuracy \
     --seed $SEED \
     --verbose

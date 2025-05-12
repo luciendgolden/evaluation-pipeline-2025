@@ -187,3 +187,6 @@ evaluation_data/
 
 # Old Code
 old_code/
+
+# Weights and Biases
+wandb/

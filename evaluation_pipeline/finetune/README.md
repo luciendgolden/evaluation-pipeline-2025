@@ -62,4 +62,10 @@ parser.add_argument("--optimizer_eps", default=1e-8, type=float, help="The epsil
 parser.add_argument("--amsgrad", default=False, action=argparse.BooleanOptionalAction, help="Whether to use AMSGrad variant of the AdamW optimizer. (Only relevant if adamw chosen for optimizer)")
 parser.add_argument("--causal", default=False, action=argparse.BooleanOptionalAction, help="Whether to use causal masking")
 parser.add_argument("--take_final", default=False, action=argparse.BooleanOptionalAction, help="Whether to take the last token rather than the first one.")
+
+# W&B parameters
+parser.add_argument("--wandb", action=argparse.BooleanOptionalAction, default=False, help="Flag to activate W&B logging.")
+parser.add_argument("--wandb_project", type=str, default="BabyLM Finetuning", help="The name of the project to log to. By default this is BabyLM Finetuning.")
+parser.add_argument("--wandb_entity", type=str, default=None, help="The name of the user/organization on W&B to log to.")
+parser.add_argument("--exp_name", type=str, default=None, help="The name of the run as it appears on W&B. By default this is: 'model_name_task_seed'")
 ```
