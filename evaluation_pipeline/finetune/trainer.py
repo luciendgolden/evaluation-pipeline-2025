@@ -60,7 +60,7 @@ class Trainer():
         self._init_model()
         self.load_data()
         self.global_step: int = 0
-        self.total_steps = len(self.train_dataloader) * self.args.num_epochs
+        self.total_steps = (len(self.train_dataloader) // self.args.gradient_accumulation) * self.args.num_epochs
         self._init_opitmizer()
         self._init_scheduler()
         if args.wandb:
@@ -86,7 +86,9 @@ class Trainer():
         """This function loads the data and creates the
         dataloader for each split of the data.
         """
-        self.train_dataloader: DataLoader = _load_labeled_dataset(self.args.train_data, self.args.batch_size, self.tokenizer, True, True, self.args)
+        assert self.args.batch_size % self.args.gradient_accumulation == 0, f"The gradient accumualtion {self.args.gradient_accumulation} should divide the batch size {self.args.batch_size}."
+
+        self.train_dataloader: DataLoader = _load_labeled_dataset(self.args.train_data, self.args.batch_size // self.args.gradient_accumulation, self.tokenizer, True, True, self.args)
 
         self.valid_dataloader: DataLoader | None = None
         if self.args.valid_data is not None:
@@ -136,20 +138,24 @@ class Trainer():
                 the epoch.
         """
         self.model.train()
+        self.optimizer.zero_grad()
 
         progress_bar = tqdm(initial=self.global_step, total=self.total_steps)
+        cummulator = 0
 
         for input_data, attention_mask, labels in self.train_dataloader:
             input_data = input_data.to(device=self.device)
             attention_mask = attention_mask.to(device=self.device)
             labels = labels.to(device=self.device)
 
-            self.optimizer.zero_grad()
-
             logits = self.model(input_data, attention_mask)
 
             loss = F.cross_entropy(logits, labels)
             loss.backward()
+            cummulator += 1
+            if cummulator < self.args.gradient_accumulation:
+                continue
+            cummulator = 0
 
             self.optimizer.step()
             if self.scheduler is not None:
@@ -176,6 +182,7 @@ class Trainer():
                 progress_bar.set_postfix_str(metrics_string)
 
             self.global_step += 1
+            self.optimizer.zero_grad()
 
         progress_bar.close()
 

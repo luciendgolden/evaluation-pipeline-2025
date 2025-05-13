@@ -39,7 +39,8 @@ def _parse_arguments() -> argparse.Namespace:
     parser.add_argument("--revision_name", default=None, type=str, help="Name of the checkpoint/version of the model to test. (If None, the main will be used)")
 
     # Hyperparameters
-    parser.add_argument("--batch_size", default=16, type=int, help="The batch size during fine-tuning.")
+    parser.add_argument("--batch_size", default=16, type=int, help="The batch size for each step during fine-tuning.")
+    parser.add_argument("--gradient_accumulation", default=1, type=int, help="The number of graident accumualtion steps to do, to reach the desired batch size (needs to divide the batch size argument).")
     parser.add_argument("--valid_batch_size", default=64, type=int, help="The batch size during inference.")
     parser.add_argument("--learning_rate", default=3e-5, type=float, help="The maximum learning rate during fine-tuning.")
     parser.add_argument("--sequence_length", default=512, type=int, help="The max sequence length before truncation.")
