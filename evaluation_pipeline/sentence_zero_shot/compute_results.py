@@ -37,6 +37,8 @@ def compute_results(args: argparse.ArgumentParser, model: torch.nn.Module, datal
             return compute_mlm_results(args, model, dataloader, temperatures)
         elif args.backend == "enc_dec_mask":
             return compute_enc_dec_mask_results(args, model, dataloader, temperatures)
+        elif args.backend == "enc_dec_prefix":
+            return compute_enc_dec_prefix_results(args, model, dataloader, temperatures)
 
 
 def update_subset_to_stats(subset_to_stats, metadatas):
@@ -234,6 +236,49 @@ def compute_enc_dec_mask_results(args, model, dataloader, temperatures):
                     summed_log_probs.append(torch.sum(concat_temp_log_probs[start_idx:end_idx]).item())
                     curr_idx += examples_per_batch
                 all_log_probs[temp].append(torch.tensor(summed_log_probs))
+
+        rank_and_evaluate(args, subset_to_stats, all_log_probs, raw_sentences, labels, metadatas, uids, predictions)
+
+    if args.save_predictions:
+        for i in temperatures:
+            temp_pred = dict()
+            for k, v in predictions[i].items():
+                temp_pred[k] = dict()
+                temp_pred[k]["predictions"] = v
+            final_predictions[i] = temp_pred
+
+    return subset_to_stats, final_predictions
+
+
+def compute_enc_dec_prefix_results(args, model, dataloader, temperatures):
+    subset_to_stats = {temp : {} for temp in temperatures}
+    predictions = {temp : defaultdict(list) for temp in subset_to_stats}
+    final_predictions = {temp : {} for temp in subset_to_stats}
+
+    for raw_sentences, sentence_dict, labels, metadatas, uids in tqdm(dataloader):
+        update_subset_to_stats(subset_to_stats, metadatas)
+        num_sentences = len([key for key in sentence_dict.keys() if key.endswith("dec_attn_mask")])
+        prefixes = [f'sentence_{sentence_idx}' for sentence_idx in range(num_sentences)]
+
+        # Inference
+        all_log_probs = {temp : [] for temp in subset_to_stats}
+        for prefix in prefixes:
+            logits = model(
+                input_ids=sentence_dict[f"{prefix}_enc_tokens"].to(DEVICE),
+                attention_mask=sentence_dict[f"{prefix}_enc_attn_mask"].to(DEVICE),
+                decoder_input_ids=sentence_dict[f"{prefix}_dec_tokens"].to(DEVICE),
+                decoder_attention_mask=sentence_dict[f"{prefix}_dec_attn_mask"].to(DEVICE),
+            )
+            if isinstance(logits, tuple):
+                logits = logits[0]  # BxTxV
+            else:
+                logits = logits["logits"]  # BxTxV
+
+            for temp in subset_to_stats:
+                log_probs = F.log_softmax(logits / temp, dim=-1)
+                target_log_probs = torch.gather(log_probs, -1, sentence_dict[f"{prefix}_targets"].to(DEVICE).unsqueeze(-1)).squeeze(-1)
+                phrase_log_probs = torch.sum(target_log_probs * sentence_dict[f"{prefix}_phrase_mask"].to(DEVICE), dim=1)
+                all_log_probs[temp].append(phrase_log_probs.cpu())
 
         rank_and_evaluate(args, subset_to_stats, all_log_probs, raw_sentences, labels, metadatas, uids, predictions)
 
