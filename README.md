@@ -132,6 +132,11 @@ Use the following shell script to evaluate on the fast zero-shot evaluations:
 
 These will work out of the box if you use a HuggingFace-based model. In the case you are not, you can either go to the `hf_conversion_tutorial` folder to create a HF repository or adapt the code to work with a pure PyTorch implementation (it should not be too complicated). The implementation currently only supports three types of trained langauge modeling tasks: causal, mlm, and mntp (mlm shifted similarly to causal). If another objective (like diffusion for example) was used to train the models, you will need to edit the files.
 
+> [!Important]
+> For the Encoder-Decoder backend, there exists two different evaluation styles for the sentence zero_shot evaluations. Those are either prefix `enc_dec_prefix` or bi-direction/fill-in-the-gap `enc_dec_mask`. The style of input to the encoder and decoder are the following:
+> - **Encoder**: `CLS` text with a mask / prefix ending with a mask `EOS` (the code checks whether a `CLS` and `EOS` are defined, if not, they are not added).
+> - **Decoder**: `BOS` / `MASK` text to predict in case of prefix (The choice of `BOS` or `MASK` depends on the architecture). 
+
 #### Fine-tuning or low-rank adapter training
 
 Like last year, we provide a script to support fine-tuning on all tasks:
@@ -148,6 +153,17 @@ This will fine-tune your model on all (Super)GLUE tasks.
 
 > [!Note]
 > There are more hyperparameters you can play with! Checkout the README in the finetune folder of the evaluation_pipeline for more information. In addition, you can edit also edit the classifier head.
+
+> [!Important]
+> By default the code only expects encoders or decoders. Add the flag `--enc_dec` to the python calls to use an encoder-decoder. For the fine-tuning, the default classification models does the following:
+> - Passes the inputs to the Encoder
+> - Initializes a 1 token sequence containing the start token (defined in the `config.json` of the model as `decoder_start_token_id`) to pass to the decoder.
+> - Does the Decoder forward pass
+> - Takes the encoding of the start token and passes it to the classification head.
+> This is the way we decided to implement the finetuning, however, this can be adapted by yourselves.
+
+> [!Note]
+> The classification head and the way the model does classification cna be adapted by you. Change the code found in the `evaluation_pipeline/finetune/classifier_model.py` file to do this.
 
 <!---
 Here are the hyperparameters used for fine-tuning for all tasks. Feel free to modify these, or to set task-specific hyperparameters:
