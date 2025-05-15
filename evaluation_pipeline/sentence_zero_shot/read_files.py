@@ -138,7 +138,7 @@ def decode_wug_adj_nominalization(raw_dict: dict[str, Any]) -> dict[str, str]:
     """
     pair = {
         "sentences": raw_dict["sentences"].split('\t'),
-        "prefixes": None,
+        "prefixes": [None],
         "completions": raw_dict["sentences"].split('\t'),
         "ratio": float(raw_dict["ratio"]),
         "label": 0,
