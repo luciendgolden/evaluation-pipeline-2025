@@ -73,7 +73,10 @@ class ModelForSequenceClassification(nn.Module):
         """
         super().__init__()
         self.transformer: nn.Module = AutoModel.from_pretrained(config.model_name_or_path, trust_remote_code=True, revision=config.revision_name)
+        self.enc_dec: bool = config.enc_dec
         model_config = AutoConfig.from_pretrained(config.model_name_or_path, trust_remote_code=True, revision=config.revision_name)
+        if self.enc_dec:
+            self.decoder_start_token_id = model_config.decoder_start_token_id
         hidden_size = model_config.hidden_size
         self.classifier: nn.Module = ClassifierHead(config, hidden_size)
         self.take_final: bool = config.take_final
@@ -98,7 +101,13 @@ class ModelForSequenceClassification(nn.Module):
             - input_data: :math:`(B, S)`
             - attention_mask: :math:`(B, S)` or :math:`(B, S, S)`
         """
-        output_transformer: Any = self.transformer(input_data, attention_mask)
+        if self.enc_dec:
+            batch_size = attention_mask.size(0)
+            decoder_input_ids = input_data.new_full((batch_size, 1), self.decoder_start_token_id)
+            decoder_attention_mask = attention_mask.new_ones((batch_size, 1))
+            output_transformer: Any = self.transformer(input_data, attention_mask, decoder_input_ids=decoder_input_ids, decoder_attention_mask=decoder_attention_mask)
+        else:
+            output_transformer = self.transformer(input_data, attention_mask)
         if type(output_transformer) is tuple:
             encoding: torch.Tensor = output_transformer[0]
         elif isinstance(output_transformer, ModelOutput):
