@@ -38,7 +38,14 @@ class CompletionRankingDataset(Dataset):
         """
         sentences = sentence_dict["sentences"]
         completions = sentence_dict["completions"]
-        bos_index = [self.tokenizer.bos_token_id]
+        if self.tokenizer.bos_token_id is not None:
+            bos_index = [self.tokenizer.bos_token_id]
+            att_prepend = [1]
+            mask_prepend = [0]
+        else:
+            bos_index = []
+            att_prepend = []
+            mask_prepend = []
 
         processed_sentence_dict = {}
         for sentence_idx, (sentence, completion) in enumerate(zip(sentences, completions)):
@@ -60,8 +67,8 @@ class CompletionRankingDataset(Dataset):
                 phrase_mask[token_idx] = 1
 
             processed_sentence_dict[f'sentence_{sentence_idx}_tokens'] = torch.LongTensor(bos_index + tokens)
-            processed_sentence_dict[f'sentence_{sentence_idx}_attn_mask'] = torch.LongTensor([1] + attention_mask)
-            processed_sentence_dict[f'sentence_{sentence_idx}_phrase_mask'] = torch.LongTensor([0] + phrase_mask)
+            processed_sentence_dict[f'sentence_{sentence_idx}_attn_mask'] = torch.LongTensor(att_prepend + attention_mask)
+            processed_sentence_dict[f'sentence_{sentence_idx}_phrase_mask'] = torch.LongTensor(mask_prepend + phrase_mask)
 
         return processed_sentence_dict
 
@@ -75,8 +82,27 @@ class CompletionRankingDataset(Dataset):
         sentences = sentence_dict["sentences"]
         completions = sentence_dict["completions"]
         mask_index = self.tokenizer.mask_token_id
-        cls_index = [self.tokenizer.cls_token_id]
-        sep_index = [self.tokenizer.sep_token_id]
+        if self.tokenizer.cls_token_id is not None:
+            cls_index = [self.tokenizer.cls_token_id]
+            prepend = 1
+            att_prepend = [1]
+        elif self.tokenizer.bos_token_id is not None:
+            cls_index = [self.tokenizer.bos_token_id]
+            prepend = 1
+            att_prepend = [1]
+        else:
+            cls_index = []
+            prepend = 0
+            att_prepend = []
+        if self.tokenizer.sep_token_id is not None:
+            sep_index = [self.tokenizer.sep_token_id]
+            att_append = [1]
+        elif self.tokenizer.eos_token_id is not None:
+            sep_index = [self.tokenizer.eos_token_id]
+            att_append = [1]
+        else:
+            sep_index = []
+            att_append = []
 
         processed_sentence_dict = {}
         for sentence_idx, (sentence, completion) in enumerate(zip(sentences, completions)):
@@ -98,13 +124,13 @@ class CompletionRankingDataset(Dataset):
             # Produce masked inputs
             processed_tokens = []
             processed_attention_masks = []
-            mask_indices = [phrase_idx + 1 for phrase_idx in phrase_indices]
+            mask_indices = [phrase_idx + prepend for phrase_idx in phrase_indices]
             for mask_replacement_index in mask_indices:
                 curr_tokens = torch.LongTensor(cls_index + tokens + sep_index)
                 curr_tokens[mask_replacement_index] = mask_index
                 processed_tokens.append(curr_tokens)
 
-                curr_attention_mask = torch.LongTensor([1] + attention_mask + [1])
+                curr_attention_mask = torch.LongTensor(att_prepend + attention_mask + att_append)
                 processed_attention_masks.append(curr_attention_mask)
 
             processed_sentence_dict[f'sentence_{sentence_idx}_tokens'] = processed_tokens
@@ -124,7 +150,18 @@ class CompletionRankingDataset(Dataset):
         sentences = sentence_dict["sentences"]
         completions = sentence_dict["completions"]
         mask_index = self.tokenizer.mask_token_id
-        cls_index = [self.tokenizer.cls_token_id]
+        if self.tokenizer.cls_token_id is not None:
+            cls_index = [self.tokenizer.cls_token_id]
+            prepend = 1
+            att_prepend = [1]
+        elif self.tokenizer.bos_token_id is not None:
+            cls_index = [self.tokenizer.bos_token_id]
+            prepend = 1
+            att_prepend = [1]
+        else:
+            cls_index = []
+            prepend = 0
+            att_prepend = []
 
         processed_sentence_dict = {}
         for sentence_idx, (sentence, completion) in enumerate(zip(sentences, completions)):
@@ -139,7 +176,7 @@ class CompletionRankingDataset(Dataset):
             target_tokens = []
             for i, (start, end) in enumerate(tokenizer_output['offset_mapping']):
                 # If token overlaps with our phrase's character span
-                if end > start_char_idx:
+                if end > start_char_idx and (i != 0 or prepend != 0):
                     phrase_indices.append(i)
                     target_tokens.append(tokens[i])
 
@@ -148,10 +185,10 @@ class CompletionRankingDataset(Dataset):
             processed_attention_masks = []
             for phrase_index in phrase_indices:
                 curr_tokens = torch.LongTensor(cls_index + tokens)
-                curr_tokens[phrase_index + 1] = mask_index
+                curr_tokens[phrase_index + prepend] = mask_index
                 processed_tokens.append(curr_tokens)
 
-                curr_attention_mask = torch.LongTensor([1] + attention_mask)
+                curr_attention_mask = torch.LongTensor(att_prepend + attention_mask)
                 processed_attention_masks.append(curr_attention_mask)
             processed_tokens = torch.stack(processed_tokens, dim=0)
             processed_attention_masks = torch.stack(processed_attention_masks, dim=0)
