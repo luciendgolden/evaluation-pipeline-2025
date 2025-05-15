@@ -29,7 +29,7 @@ From last years iteration we are still including BLiMP, EWoK, and GLUE for evalu
 To be able to use the pipeline you need to install the `requirements.txt` packages.
 
 > [!Warning]
-> These packages were installed using Python 3.13, in case some of the packages are not compatible with your Python version (either because the version is too recent or is not supported). In that case, you could either update your Python version or pip/conda install the following packages: `transformers`, `torch`, `scikit-learn`, `numpy`, `pandas`, `statsmodels`, `datasets`, and `nltk`.
+> These packages were installed using Python 3.13, in case some of the packages are not compatible with your Python version (either because the version is too recent or is not supported). In that case, you could either update your Python version or pip/conda install the following packages: `transformers`, `torch`, `scikit-learn`, `numpy`, `pandas`, `statsmodels`, `datasets`, `wandb`, and `nltk`.
 
 ## File Structure
 
