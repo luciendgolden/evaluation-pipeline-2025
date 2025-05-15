@@ -123,7 +123,7 @@ class ModelForSequenceClassification(nn.Module):
         else:
             print(f"Add support for output type: {type(output_transformer)}!")
             exit()
-        if self.take_final:
+        if self.take_final and not self.enc_dec:
             final_position: torch.Tensor = attention_mask[:, :, -1].squeeze().long().argmax(-1) - 1
             transformer_output: torch.Tensor = encoding[final_position].diagonal().t()
         else:
