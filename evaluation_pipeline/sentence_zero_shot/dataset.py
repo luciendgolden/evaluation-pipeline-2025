@@ -232,6 +232,12 @@ class CompletionRankingDataset(Dataset):
                 bos_index = [self.tokenizer.additional_special_tokens_id[0]]
             else:
                 raise "Unknown BOS token, please specify it in the tokenizer!"
+        if self.tokenizer.eos_token_id is not None:
+            eos_index = [self.tokenizer.eos_token_id]
+            att_append = [1]
+        else:
+            eos_index = []
+            att_append = []
 
         processed_sentence_dict = {}
         for sentence_idx, (sentence, completion) in enumerate(zip(sentences, completions)):
@@ -256,11 +262,11 @@ class CompletionRankingDataset(Dataset):
             dec_tokens = []
             dec_att = []
             for phrase_index in phrase_indices:
-                curr_tokens = torch.LongTensor(cls_index + tokens)
+                curr_tokens = torch.LongTensor(cls_index + tokens + eos_index)
                 curr_tokens[phrase_index + prepend] = mask_index
                 processed_tokens.append(curr_tokens)
 
-                curr_attention_mask = torch.LongTensor(att_prepend + attention_mask)
+                curr_attention_mask = torch.LongTensor(att_prepend + attention_mask + att_append)
                 processed_attention_masks.append(curr_attention_mask)
                 dec_tokens.append(torch.LongTensor(bos_index))
                 dec_att.append(torch.ones(1, dtype=torch.long))
@@ -306,6 +312,12 @@ class CompletionRankingDataset(Dataset):
                 bos_index = [self.tokenizer.additional_special_tokens_id[0]]
             else:
                 raise "Unknown BOS token, please specify it in the tokenizer!"
+        if self.tokenizer.eos_token_id is not None:
+            eos_index = [self.tokenizer.eos_token_id]
+            att_append = [1]
+        else:
+            eos_index = []
+            att_append = []
 
         processed_sentence_dict = {}
         for sentence_idx, (sentence, prefix, completion) in enumerate(zip(sentences, prefixes, completions)):
@@ -324,8 +336,8 @@ class CompletionRankingDataset(Dataset):
             target_tokens = [token for token in dec_tokens]
             processed_sentence_dict[f'sentence_{sentence_idx}_phrase_mask'] = torch.ones(len(target_tokens), dtype=torch.long)
 
-            processed_tokens = torch.LongTensor(cls_index + enc_tokens + mask_index)
-            processed_attention_mask = torch.LongTensor(att_prepend + enc_attention_mask + [1])
+            processed_tokens = torch.LongTensor(cls_index + enc_tokens + mask_index + eos_index)
+            processed_attention_mask = torch.LongTensor(att_prepend + enc_attention_mask + [1] + att_append)
 
             dec_tokens = torch.LongTensor(bos_index + dec_tokens[:-1])
             dec_attention_mask = torch.LongTensor([1] + dec_attention_mask[:-1])

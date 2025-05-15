@@ -51,10 +51,16 @@ def get_p_enc_dec(sentence, word, model, tokenizer):  # gets p of word (word) gi
         bos_token = tokenizer.bos_token
     else:
         bos_token = tokenizer.additional_special_tokens[0]
+    if tokenizer.eos_token_id is not None:
+        eos_token = [tokenizer.eos_token_id]
+        att_append = [1]
+    else:
+        eos_token = []
+        att_append = []
     inpts = tokenizer(sentence, add_special_tokens=False)
-    input_ids = cls_token + inpts["input_ids"] + [mask_token]
+    input_ids = cls_token + inpts["input_ids"] + [mask_token] + eos_token
     input_ids = torch.LongTensor(input_ids)[None, :]
-    attention_mask = att_cls + inpts["attention_mask"] + [1]
+    attention_mask = att_cls + inpts["attention_mask"] + [1] + att_append
     attention_mask = torch.LongTensor(attention_mask)[None, :]
     dec_inpts = tokenizer(bos_token, add_special_tokens=False, return_tensors="pt")
     dec_input_ids = dec_inpts["input_ids"]
@@ -161,10 +167,16 @@ def get_p2_enc_dec(sentence, word, model, tokenizer):  # as get_p if len(tokeniz
         bos_token = tokenizer.bos_token
     else:
         bos_token = tokenizer.additional_special_tokens[0]
+    if tokenizer.eos_token_id is not None:
+        eos_token = [tokenizer.eos_token_id]
+        att_append = [1]
+    else:
+        eos_token = []
+        att_append = []
     inpts = tokenizer(sentence, add_special_tokens=False)
-    input_ids = cls_token + inpts["input_ids"] + [mask_token]
+    input_ids = cls_token + inpts["input_ids"] + [mask_token] + eos_token
     input_ids = torch.LongTensor(input_ids)[None, :]
-    attention_mask = att_cls + inpts["attention_mask"] + [1]
+    attention_mask = att_cls + inpts["attention_mask"] + [1] + att_append
     attention_mask = torch.LongTensor(attention_mask)[None, :]
     dec_inpts = tokenizer(bos_token, add_special_tokens=False, return_tensors="pt")
     dec_input_ids = dec_inpts["input_ids"]
