@@ -29,7 +29,7 @@ parser.add_argument("--task", default="blimp", type=str, help="The task that is 
                     choices=["blimp", "ewok", "entity_tracking", "wug"])
 
 parser.add_argument("--model_path_or_name", default="ltg/gpt-bert-babylm-small", type=str, help="Path to the model to evaluate.")
-parser.add_argument("--backend", default="mlm", type=str, help="The evaluation backend strategy", choices=["mlm", "causal", "mntp"])
+parser.add_argument("--backend", default="mlm", type=str, help="The evaluation backend strategy", choices=["mlm", "causal", "mntp", "enc_dec_mask", "enc_dec_prefix"])
 
 parser.add_argument("--min_temperature", default=1.0, type=float, help="Minimum temperature to apply to the logits.")
 parser.add_argument("--max_temperature", default=None, type=float, help="Maximum temperature to apply to the logits. If None, onlny the minimum temperature will be considered.")

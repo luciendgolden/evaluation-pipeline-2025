@@ -73,6 +73,7 @@ def decode_blimp(raw_dict: dict[str, Any], file_name: pathlib.Path) -> dict[str,
     if "field" in raw_dict:
         pair = {
             "sentences": [raw_dict["sentence_good"], raw_dict["sentence_bad"]],
+            "prefixes": [None, None],
             "completions": [raw_dict["sentence_good"], raw_dict["sentence_bad"]],
             "label": 0,
             "field": raw_dict["field"],
@@ -84,6 +85,7 @@ def decode_blimp(raw_dict: dict[str, Any], file_name: pathlib.Path) -> dict[str,
     else:  # For the supplemetal tasks, there is no field or UID
         pair = {
             "sentences": [raw_dict["sentence_good"], raw_dict["sentence_bad"]],
+            "prefixes": [None, None],
             "completions": [raw_dict["sentence_good"], raw_dict["sentence_bad"]],
             "label": 0,
             "field": "supplement",
@@ -111,6 +113,7 @@ def decode_ewok(raw_dict: dict[str, Any], full_sentence_scores: bool) -> dict[st
         completions = [raw_dict["Target1"], raw_dict["Target2"]]
     pair = {
         "sentences": [" ".join([raw_dict["Context1"], raw_dict["Target1"]]), " ".join([raw_dict["Context1"], raw_dict["Target2"]])],
+        "prefixes": [raw_dict["Context1"], raw_dict["Context2"]],
         "completions": completions,
         "label": 0,
         "UID": raw_dict["Domain"],
@@ -135,6 +138,7 @@ def decode_wug_adj_nominalization(raw_dict: dict[str, Any]) -> dict[str, str]:
     """
     pair = {
         "sentences": raw_dict["sentences"].split('\t'),
+        "prefixes": [None],
         "completions": raw_dict["sentences"].split('\t'),
         "ratio": float(raw_dict["ratio"]),
         "label": 0,
@@ -158,6 +162,7 @@ def decode_entity_tracking(raw_dict: dict[str, Any], file_name: pathlib.Path) ->
     subset = f'{file_name.stem}_{raw_dict["numops"]}_ops'
     pair = {
         "sentences" : [raw_dict["input_prefix"] + option for option in raw_dict["options"]],
+        "prefixes": [raw_dict["input_prefix"] for _ in raw_dict["options"]],
         "completions" : [option for option in raw_dict["options"]],
         "label" : 0,
         "UID" : subset

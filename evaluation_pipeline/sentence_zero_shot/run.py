@@ -6,7 +6,7 @@ import json
 import argparse
 from _io import TextIOWrapper
 
-from transformers import AutoModelForCausalLM, AutoModelForMaskedLM
+from transformers import AutoModelForCausalLM, AutoModelForMaskedLM, AutoModelForSeq2SeqLM
 import torch
 
 from evaluation_pipeline.sentence_zero_shot.dataset import get_dataloader
@@ -25,7 +25,7 @@ def _parse_arguments():
                         choices=["blimp", "ewok", "entity_tracking", "wug"])
 
     parser.add_argument("--model_path_or_name", default="ltg/gpt-bert-babylm-small", type=str, help="Path to the model to evaluate.")
-    parser.add_argument("--backend", default="mlm", type=str, help="The evaluation backend strategy", choices=["mlm", "causal", "mntp"])
+    parser.add_argument("--backend", default="mlm", type=str, help="The evaluation backend strategy", choices=["mlm", "causal", "mntp", "enc_dec_mask", "enc_dec_prefix"])
 
     parser.add_argument("--min_temperature", default=1.0, type=float, help="Minimum temperature to apply to the logits.")
     parser.add_argument("--max_temperature", default=None, type=float, help="Maximum temperature to apply to the logits. If None, onlny the minimum temperature will be considered.")
@@ -44,6 +44,10 @@ def get_model(args: argparse.ArgumentParser):
         model = AutoModelForMaskedLM.from_pretrained(args.model_path_or_name, trust_remote_code=True, revision=args.revision_name)
     elif args.backend == "causal":
         model = AutoModelForCausalLM.from_pretrained(args.model_path_or_name, trust_remote_code=True, revision=args.revision_name)
+    elif args.backend in ["enc_dec_mask", "enc_dec_prefix"]:
+        model = AutoModelForSeq2SeqLM.from_pretrained(args.model_path_or_name, trust_remote_code=True, revision=args.revision_name)
+    else:
+        raise f"The backend {args.backend} is not implemented, please implemented yourself or raise an issue on the GitHub!"
     model = model.to(DEVICE)
     model.eval()
 
@@ -90,6 +94,8 @@ def process_results(args: argparse.ArgumentParser, results: dict):
             split_dict = subdomain_dict["UID"]
             for split in splits:
                 split_keys = [key for key in split_dict if key.startswith(split)]
+                if not split_keys:
+                    continue
                 curr_acc = sum([split_dict[key] for key in split_keys]) / len(split_keys)
 
                 split_dict[split] = curr_acc

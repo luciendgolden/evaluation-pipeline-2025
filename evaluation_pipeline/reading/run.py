@@ -1,5 +1,5 @@
-from transformers import AutoModelForCausalLM, AutoModelForMaskedLM, AutoTokenizer
-from evaluation_pipeline.reading.evaluation_functions import get_p2_mntp, get_p2, get_p2_mlm
+from transformers import AutoModelForCausalLM, AutoModelForMaskedLM, AutoTokenizer, AutoModelForSeq2SeqLM
+from evaluation_pipeline.reading.evaluation_functions import get_p2_mntp, get_p2, get_p2_mlm, get_p2_enc_dec
 from tqdm import tqdm
 import pandas as pd
 import argparse
@@ -8,6 +8,9 @@ import statsmodels.formula.api as smf
 from functools import partial
 import math
 import json
+import torch
+
+DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
 def parse_args():
@@ -17,7 +20,7 @@ def parse_args():
     parser.add_argument("--output_dir", default="results", type=pathlib.Path, help="The output directory where the results will be written.")
     parser.add_argument("--data_path", default="reading/data/reading_data.csv", type=pathlib.Path, help="Path to file containing the lambada dataset, we expect it to be in a JSONL format.")
     parser.add_argument("--model_path_or_name", default="ltg/gpt-bert-babylm-small", type=pathlib.Path, help="The path/name to/of the huggingface folder/repository.")
-    parser.add_argument("--backend", default="causal", type=str, help="The evaluation backend strategy.", choices=["mlm", "mntp", "causal"])
+    parser.add_argument("--backend", default="causal", type=str, help="The evaluation backend strategy.", choices=["mlm", "mntp", "causal", "enc_dec"])
     parser.add_argument("--number_of_mask_tokens_to_append", default=3, type=int, help="When using either mlm or mntp, the number of mask tokens to append to approximate causal generation.")
     parser.add_argument("--revision_name", default=None, type=str, help="Name of the checkpoint/version of the model to test. (If None, the main will be used)")
 
@@ -47,9 +50,12 @@ if __name__ == "__main__":
 
     if args.backend == "causal":
         model = AutoModelForCausalLM.from_pretrained(args.model_path_or_name, trust_remote_code=True, revision=args.revision_name)
-    else:
+    elif args.backend in ["mlm", "mntp"]:
         model = AutoModelForMaskedLM.from_pretrained(args.model_path_or_name, trust_remote_code=True, revision=args.revision_name)
+    elif args.backend == "enc_dec":
+        model = AutoModelForSeq2SeqLM.from_pretrained(args.model_path_or_name, trust_remote_code=True, revision=args.revision_name)
 
+    model.to(DEVICE)
     model.eval()
     tokenizer = AutoTokenizer.from_pretrained(args.model_path_or_name, trust_remote_code=True, revision=args.revision_name)
 
@@ -57,8 +63,10 @@ if __name__ == "__main__":
         p2_function = get_p2
     elif args.backend == "mlm":
         p2_function = partial(get_p2_mlm, num_mask_tokens=args.number_of_mask_tokens_to_append)
-    else:
+    elif args.backend == "mntp":
         p2_function = partial(get_p2_mntp, num_mask_tokens=args.number_of_mask_tokens_to_append)
+    elif args.backend == "enc_dec":
+        p2_function = get_p2_enc_dec
 
     out = []
     prev_p2 = []
@@ -135,6 +143,7 @@ if __name__ == "__main__":
     predictability_file = args.output_dir / "report.txt"
     with predictability_file.open("w") as fj:
         print(f"EYE TRACKING SCORE: {sum(report_values) / len(report_values):.2f}", file=fj)
+    print(f"EYE TRACKING SCORE: {sum(report_values) / len(report_values):.2f}")
 
     results = []
 
@@ -175,3 +184,4 @@ if __name__ == "__main__":
     predictability_file = args.output_dir / "report.txt"
     with predictability_file.open("a") as fj:
         print(f"SELF-PACED READING SCORE: {report_values:.2f}", file=fj)
+    print(f"SELF-PACED READING SCORE: {report_values:.2f}")
