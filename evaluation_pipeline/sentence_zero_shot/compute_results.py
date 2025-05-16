@@ -133,6 +133,7 @@ def compute_mlm_results(args, model, dataloader, temperatures):
                 # Construct minibatch
                 tokens = sentence_dict[f"{prefix}_tokens"][batch_idx*bsz:(batch_idx+1)*bsz].to(DEVICE)
                 attn_mask = sentence_dict[f"{prefix}_attn_mask"][batch_idx*bsz:(batch_idx+1)*bsz].to(DEVICE)
+                indices = sentence_dict[f"{prefix}_indices"][batch_idx*bsz:(batch_idx+1)*bsz].to(DEVICE)
                 targets = sentence_dict[f"{prefix}_targets"][batch_idx*bsz:(batch_idx+1)*bsz].to(DEVICE)
 
                 # Do the log-probs
@@ -141,11 +142,12 @@ def compute_mlm_results(args, model, dataloader, temperatures):
                     attention_mask=attn_mask
                 )
                 if isinstance(logits, tuple):
-                    logits = logits[0]  # Bx1xV
+                    logits = logits[0]  # BxTxV
                 else:
-                    logits = logits["logits"]  # Bx1xV
+                    logits = logits["logits"]  # BxTxV
 
-                masked_logits = logits[:, 0]  # BxV
+                minibatch_indices = torch.arange(logits.shape[0]).to(DEVICE)
+                masked_logits = logits[minibatch_indices, indices]  # BxV
 
                 for temp in subset_to_stats:
                     log_probs = F.log_softmax(masked_logits / temp, dim=-1)
