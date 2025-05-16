@@ -1,13 +1,16 @@
 import torch
 import numpy as np
 
+from evaluation_pipeline.utils import get_logits
+
 DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
 def get_p(sentence, word, model, tokenizer):  # gets p of word (word) given context. Relies on model and tokenizer.
     inpts = tokenizer(sentence, return_tensors="pt").to(DEVICE)
     with torch.no_grad():
-        logits = model(**inpts, return_dict=True).logits[:, -1, :].cpu()
+        outputs = model(**inpts)
+        logits = get_logits(outputs)[:, -1, :].cpu()
     target_id = tokenizer(word, add_special_tokens=False)["input_ids"][0]
     p = torch.softmax(logits[0], dim=-1)[target_id].item()
     return p
@@ -17,7 +20,8 @@ def get_p_mntp(sentence, word, model, tokenizer, num_mask_tokens=3):  # gets p o
     inpts = tokenizer("".join([sentence, "".join([tokenizer.mask_token for _ in range(num_mask_tokens)])]), return_tensors="pt").to(DEVICE)
     position_of_pred = -(num_mask_tokens + 1) if inpts.input_ids[:, -1] == tokenizer.mask_token_id else -(num_mask_tokens + 2)
     with torch.no_grad():
-        logits = model(**inpts, return_dict=True).logits[:, position_of_pred, :].cpu()
+        outputs = model(**inpts)
+        logits = get_logits(outputs)[:, position_of_pred, :].cpu()
     target_id = tokenizer(word, add_special_tokens=False)["input_ids"][0]
     p = torch.softmax(logits[0], dim=-1)[target_id].item()
     return p
@@ -27,7 +31,8 @@ def get_p_mlm(sentence, word, model, tokenizer, num_mask_tokens=3):  # gets p of
     inpts = tokenizer("".join([sentence, "".join([tokenizer.mask_token for _ in range(num_mask_tokens)])]), return_tensors="pt").to(DEVICE)
     position_of_pred = -num_mask_tokens if inpts.input_ids[:, -1] == tokenizer.mask_token_id else -(num_mask_tokens + 1)
     with torch.no_grad():
-        logits = model(**inpts, return_dict=True).logits[:, position_of_pred, :].cpu()
+        outputs = model(**inpts)
+        logits = get_logits(outputs)[:, position_of_pred, :].cpu()
     target_id = tokenizer(word, add_special_tokens=False)["input_ids"][0]
     p = torch.softmax(logits[0], dim=-1)[target_id].item()
     return p
@@ -66,7 +71,8 @@ def get_p_enc_dec(sentence, word, model, tokenizer):  # gets p of word (word) gi
     dec_input_ids = dec_inpts["input_ids"]
     dec_attention_mask = dec_inpts["attention_mask"]
     with torch.no_grad():
-        logits = model(input_ids=input_ids, attention_mask=attention_mask, decoder_input_ids=dec_input_ids, decoder_attention_mask=dec_attention_mask, return_dict=True).logits[:, 0, :]
+        outputs = model(input_ids=input_ids.to(DEVICE), attention_mask=attention_mask.to(DEVICE), decoder_input_ids=dec_input_ids.to(DEVICE), decoder_attention_mask=dec_attention_mask.to(DEVICE))
+        logits = get_logits(outputs)[:, 0, :].cpu()
     target_id = tokenizer(word, add_special_tokens=False)["input_ids"][0]
     p = torch.softmax(logits[0], dim=-1)[target_id].item()
     return p
@@ -75,7 +81,8 @@ def get_p_enc_dec(sentence, word, model, tokenizer):  # gets p of word (word) gi
 def get_p2(sentence, word, model, tokenizer):  # as get_p if len(tokenizer(word)) == 1; else, sums logP of subword tokens
     inpts = tokenizer(sentence, return_tensors="pt").to(DEVICE)
     with torch.no_grad():
-        logits = model(**inpts, return_dict=True).logits[:, -1, :].cpu()
+        outputs = model(**inpts)
+        logits = get_logits(outputs)(**inpts, return_dict=True).logits[:, -1, :].cpu()
     target = tokenizer(word, add_special_tokens=False)["input_ids"]  # Check whether tokenizer adds a whitespace to the beginning of input.
     if len(target) == 1:
         target_id = target[0]
@@ -101,7 +108,8 @@ def get_p2_mlm(sentence, word, model, tokenizer, num_mask_tokens=3):  # as get_p
     inpts = tokenizer("".join([sentence, "".join([tokenizer.mask_token for _ in range(num_mask_tokens)])]), return_tensors="pt").to(DEVICE)
     position_of_pred = -num_mask_tokens if inpts.input_ids[:, -1] == tokenizer.mask_token_id else -(num_mask_tokens + 1)
     with torch.no_grad():
-        logits = model(**inpts, return_dict=True).logits[:, position_of_pred, :].cpu()
+        outputs = model(**inpts)
+        logits = get_logits(outputs)[:, position_of_pred, :].cpu()
     target = tokenizer(word, add_special_tokens=False)["input_ids"]  # Check whether tokenizer adds a whitespace to the beginning of input.
     if len(target) == 1:
         target_id = target[0]
@@ -127,7 +135,8 @@ def get_p2_mntp(sentence, word, model, tokenizer, num_mask_tokens=3):  # as get_
     inpts = tokenizer("".join([sentence, "".join([tokenizer.mask_token for _ in range(num_mask_tokens)])]), return_tensors="pt").to(DEVICE)
     position_of_pred = -(num_mask_tokens + 1) if inpts.input_ids[:, -1] == tokenizer.mask_token_id else -(num_mask_tokens + 2)
     with torch.no_grad():
-        logits = model(**inpts, return_dict=True).logits[:, position_of_pred, :].cpu()
+        outputs = model(**inpts)
+        logits = get_logits(outputs)[:, position_of_pred, :].cpu()
     target = tokenizer(word, add_special_tokens=False)["input_ids"]  # Check whether tokenizer adds a whitespace to the beginning of input.
     if len(target) == 1:
         target_id = target[0]
@@ -182,7 +191,8 @@ def get_p2_enc_dec(sentence, word, model, tokenizer):  # as get_p if len(tokeniz
     dec_input_ids = dec_inpts["input_ids"]
     dec_attention_mask = dec_inpts["attention_mask"]
     with torch.no_grad():
-        logits = model(input_ids=input_ids.to(DEVICE), attention_mask=attention_mask.to(DEVICE), decoder_input_ids=dec_input_ids.to(DEVICE), decoder_attention_mask=dec_attention_mask.to(DEVICE), return_dict=True).logits[:, 0, :]
+        outputs = model(input_ids=input_ids.to(DEVICE), attention_mask=attention_mask.to(DEVICE), decoder_input_ids=dec_input_ids.to(DEVICE), decoder_attention_mask=dec_attention_mask.to(DEVICE))
+        logits = get_logits(outputs)[:, 0, :].cpu()
     target = tokenizer(word, add_special_tokens=False)["input_ids"]  # Check whether tokenizer adds a whitespace to the beginning of input.
     if len(target) == 1:
         target_id = target[0]
