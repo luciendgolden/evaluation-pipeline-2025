@@ -82,7 +82,7 @@ def get_p2(sentence, word, model, tokenizer):  # as get_p if len(tokenizer(word)
     inpts = tokenizer(sentence, return_tensors="pt").to(DEVICE)
     with torch.no_grad():
         outputs = model(**inpts)
-        logits = get_logits(outputs)(**inpts, return_dict=True).logits[:, -1, :].cpu()
+        logits = get_logits(outputs)[:, -1, :].cpu()
     target = tokenizer(word, add_special_tokens=False)["input_ids"]  # Check whether tokenizer adds a whitespace to the beginning of input.
     if len(target) == 1:
         target_id = target[0]
