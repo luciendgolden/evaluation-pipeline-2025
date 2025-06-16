@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 MODEL_PATH=$1
 LR=${2:-3e-5}           # default: 3e-5
@@ -11,7 +12,7 @@ SEED=${5:-42}           # default: 42
 model_basename=$(basename $MODEL_PATH)
 
 for task in {boolq,multirc}; do
-        
+    echo "Running $task finetuning..."
     python -m evaluation_pipeline.finetune.run \
         --model_name_or_path "$MODEL_PATH" \
         --train_data "evaluation_data/full_eval/glue_filtered/$task.train.jsonl" \
@@ -29,9 +30,14 @@ for task in {boolq,multirc}; do
         --metrics accuracy f1 mcc \
         --metric_for_valid accuracy \
         --seed $SEED \
-        --verbose
+        --verbose \
+        --wandb \
+        --wandb_project "BabyLM2025-finetuning" \
+        --wandb_entity luciendgolden-university-of-vienna
+    echo "$task finetuning completed."
 done
 
+echo "Running RTE finetuning..."
 python -m evaluation_pipeline.finetune.run \
     --model_name_or_path "$MODEL_PATH" \
     --train_data "evaluation_data/full_eval/glue_filtered/rte.train.jsonl" \
@@ -49,8 +55,13 @@ python -m evaluation_pipeline.finetune.run \
     --metrics accuracy f1 mcc \
     --metric_for_valid accuracy \
     --seed $SEED \
-    --verbose
+    --verbose \
+    --wandb \
+    --wandb_project "BabyLM2025-finetuning" \
+    --wandb_entity luciendgolden-university-of-vienna
+echo "RTE finetuning completed."
 
+echo "Running WSC finetuning..."
 python -m evaluation_pipeline.finetune.run \
     --model_name_or_path "$MODEL_PATH" \
     --train_data "evaluation_data/full_eval/glue_filtered/wsc.train.jsonl" \
@@ -68,10 +79,14 @@ python -m evaluation_pipeline.finetune.run \
     --metrics accuracy f1 mcc \
     --metric_for_valid accuracy \
     --seed $SEED \
-    --verbose
+    --verbose \
+    --wandb \
+    --wandb_project "BabyLM2025-finetuning" \
+    --wandb_entity luciendgolden-university-of-vienna
+echo "WSC finetuning completed."
 
 for task in {mrpc,qqp}; do
-        
+    echo "Running $task finetuning..."
     python -m evaluation_pipeline.finetune.run \
         --model_name_or_path "$MODEL_PATH" \
         --train_data "evaluation_data/full_eval/glue_filtered/$task.train.jsonl" \
@@ -89,9 +104,14 @@ for task in {mrpc,qqp}; do
         --metrics accuracy f1 mcc \
         --metric_for_valid f1 \
         --seed $SEED \
-        --verbose
+        --verbose \
+        --wandb \
+        --wandb_project "BabyLM2025-finetuning" \
+        --wandb_entity luciendgolden-university-of-vienna
+    echo "$task finetuning completed."
 done
 
+echo "Running MNLI finetuning..."
 python -m evaluation_pipeline.finetune.run \
     --model_name_or_path "$MODEL_PATH" \
     --train_data "evaluation_data/full_eval/glue_filtered/mnli.train.jsonl" \
@@ -109,4 +129,10 @@ python -m evaluation_pipeline.finetune.run \
     --metrics accuracy \
     --metric_for_valid accuracy \
     --seed $SEED \
-    --verbose
+    --verbose \
+    --wandb \
+    --wandb_project "BabyLM2025-finetuning" \
+    --wandb_entity luciendgolden-university-of-vienna
+echo "MNLI finetuning completed."
+
+echo "All finetuning tasks completed successfully."
